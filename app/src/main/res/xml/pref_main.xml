@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="简介">
+
+        <EditTextPreference
+            android:defaultValue="@string/user_name"
+            android:key="@string/key_user_name"
+            android:summary="@string/user_name"
+            android:title="用户名" />
+
+        <Preference
+            android:summary="1.0"
+            android:title="版本号" />
+
+        <Preference
+            android:key="@string/send_feedback"
+            android:summary="发送反馈"
+            android:title="有问题？请联系我" />
+
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">JanDanComment</string>
+    <string name="message">目前暂时没有信息哦！</string>
+    <string name="user_name">小黑</string>
+    <string name="send_feedback">send_feedback</string>
+    <string name="key_user_name">key_user_name</string>
+</resources>
