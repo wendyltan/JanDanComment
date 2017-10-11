@@ -12,6 +12,9 @@
         <Preference
             android:summary="1.0"
             android:title="版本号" />
+        <Preference
+            android:title="基本介绍"
+            android:summary="这个软件为了爬取煎蛋网段子区而生"/>
 
         <Preference
             android:key="@string/send_feedback"
