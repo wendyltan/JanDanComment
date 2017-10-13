@@ -4,4 +4,9 @@
     <string name="user_name">小黑</string>
     <string name="send_feedback">send_feedback</string>
     <string name="key_user_name">key_user_name</string>
+    <string name="key_switch_girl">key_switch_girl</string>
+    <string name="switch_girl">（°Д°）</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

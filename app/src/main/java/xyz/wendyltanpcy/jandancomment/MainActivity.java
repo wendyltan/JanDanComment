@@ -1,13 +1,17 @@
 package xyz.wendyltanpcy.jandancomment;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import static xyz.wendyltanpcy.jandancomment.R.id.setting;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -16,12 +20,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        SharedPreferences setting = PreferenceManager.getDefaultSharedPreferences(this);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.addTab(tabLayout.newTab().setText("段子"));
-        tabLayout.addTab(tabLayout.newTab().setText("妹子图"));
         tabLayout.addTab(tabLayout.newTab().setText("待定"));
-        tabLayout.addTab(tabLayout.newTab().setText("待定"));
+        tabLayout.addTab(tabLayout.newTab().setText("新鲜事"));
+        if (setting.getBoolean("key_switch_girl",false)){
+            tabLayout.addTab(tabLayout.newTab().setText("妹子图"));
+        }
+
 
 
 
@@ -59,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
-            case R.id.setting:
+            case setting:
                 startActivity(new Intent(MainActivity.this,SettingsActivity.class));
                 break;
             default:
@@ -67,4 +74,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return false;
     }
+
+
 }

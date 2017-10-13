@@ -11,8 +11,10 @@ import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.preference.SwitchPreference;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatDelegate;
+import android.widget.Toast;
 import android.widget.Toolbar;
 import android.view.MenuItem;
 
@@ -20,6 +22,7 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 
     private AppCompatDelegate delegate;
     private EditTextPreference mNamePreference;
+    private SwitchPreference mGirlPreference;
 
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -66,6 +69,7 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 
     private void initPreference(){
         mNamePreference = (EditTextPreference)findPreference(getString(R.string.key_user_name));
+        mGirlPreference = (SwitchPreference) findPreference("key_switch_girl");
     }
 
     @Override
@@ -121,7 +125,8 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
                     // update the changed gallery name to summary filed
                     preference.setSummary(stringValue);
                 }
-            } else {
+            }
+            else {
                 preference.setSummary(stringValue);
             }
             return true;
@@ -141,7 +146,9 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-
+        if(key.equals("key_switch_girl")){
+            Toast.makeText(this,"重启应用查看变化！",Toast.LENGTH_SHORT).show();
+        }
     }
 
     public static void sendFeedback(Context context) {

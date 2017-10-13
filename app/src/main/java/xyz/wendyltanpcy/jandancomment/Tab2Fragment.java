@@ -295,7 +295,6 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
 
 
 
-
     // 上一页
     public void prePage() {
         if(isNetworkAvailable(getActivity())) {

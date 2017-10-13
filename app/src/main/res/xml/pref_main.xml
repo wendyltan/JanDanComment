@@ -9,6 +9,11 @@
             android:summary="@string/user_name"
             android:title="用户名" />
 
+        <SwitchPreference
+            android:key="@string/key_switch_girl"
+            android:title="妹子图"
+            android:summary="@string/switch_girl"/>
+
         <Preference
             android:summary="1.0"
             android:title="版本号" />
