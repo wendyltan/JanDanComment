@@ -6,6 +6,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -13,7 +15,11 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import org.jsoup.Connection;
@@ -23,9 +29,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Wendy on 2017/10/13.
@@ -33,9 +41,11 @@ import java.util.Map;
 
 public class NewsActivity extends AppCompatActivity {
 
-    private String url,titleText,contentText,timeAndAuth;
+    private String url,titleText,contentText,timeAndAuth,imageUrl;
     private TextView newsTitle,newsTimeAuth,newsContent;
-    private List<Map<String, Object>> list = new ArrayList<>();
+    private ImageView newsImage;
+    private Bitmap imageBitmap;
+    private List<String> list = new ArrayList<>();
     private ProgressDialog dialog;
 
     @Override
@@ -50,6 +60,7 @@ public class NewsActivity extends AppCompatActivity {
         newsTitle = (TextView) findViewById(R.id.news_title_text);
         newsTimeAuth = (TextView) findViewById(R.id.news_time_and_author);
         newsContent = (TextView) findViewById(R.id.news_content_text);
+        newsImage = (ImageView) findViewById(R.id.news_image);
         Intent i = getIntent();
         url = i.getStringExtra("url");
 
@@ -80,21 +91,24 @@ public class NewsActivity extends AppCompatActivity {
                 titleText = element.getElementsByTag("h1").text();
                 timeAndAuth = element.getElementsByClass("time_s").text();
                 List<String> test = element.getElementsByTag("p").eachText();
+                imageUrl = "http:"+element.getElementsByClass("lazy").attr("data-original");
+                imageBitmap = getBitmap(imageUrl);
+
                 /*
                 去掉头尾
                  */
                 test.remove(0);
                 test.remove(test.size()-1);
+                list = test;
                 StringBuilder builder = new StringBuilder();
                 for(String item : test){
                     builder.append("      "+item+"\n");
 
                 }
                 contentText = builder.toString();
-                if (timeAndAuth!=null&&contentText!=null&&titleText!=null)
+                if (timeAndAuth!=null&&contentText!=null&&titleText!=null&&imageUrl!=null)
                     break;
             }
-//            System.out.println(titleText + "\n"+contentText +"\n"+ timeAndAuth);
 
 
 
@@ -104,6 +118,21 @@ public class NewsActivity extends AppCompatActivity {
         }
     };
 
+    //获取网络图片资源，返回类型是Bitmap，用于设置在ListView中
+    public Bitmap getBitmap(String httpUrl)
+    {
+        Bitmap bmp = null;
+        try {
+            URL url = new URL(httpUrl);
+            HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+            InputStream is = conn.getInputStream();
+            bmp = BitmapFactory.decodeStream(is);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return bmp;
+    }
 
 
     Handler handler = new Handler() {
@@ -111,12 +140,27 @@ public class NewsActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             // 收到消息后执行handler
-            newsTimeAuth.setText(timeAndAuth);
-            newsContent.setText(contentText);
-            newsTitle.setText(titleText);
+            show();
+
 
         }
     };
+
+
+    private void show(){
+        if (list.isEmpty()) {
+            TextView message = (TextView) findViewById(R.id.message);
+            message.setText(R.string.message);
+            ScrollView newsScroll = (ScrollView) findViewById(R.id.news_scroll);
+            newsScroll.setVisibility(View.GONE);
+
+        }else {
+            newsTimeAuth.setText(timeAndAuth);
+            newsContent.setText(contentText);
+            newsTitle.setText(titleText);
+            newsImage.setImageBitmap(imageBitmap);
+        }
+    }
 
     // 判断是否有可用的网络连接
     public boolean isNetworkAvailable(Activity activity) {
@@ -134,6 +178,13 @@ public class NewsActivity extends AppCompatActivity {
         }
         return false;
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.open_comments,menu);
+        return true;
+    }
+
 
 
     // 重新抓取
@@ -178,6 +229,9 @@ public class NewsActivity extends AppCompatActivity {
         switch (item.getItemId()){
             case android.R.id.home:
                 onBackPressed();
+                return true;
+            case R.id.open_comments_list:
+                CommentsActivity.actionStart(this,url);
                 return true;
             default:
                 break;
