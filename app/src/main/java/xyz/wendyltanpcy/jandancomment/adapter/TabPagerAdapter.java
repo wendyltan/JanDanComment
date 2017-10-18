@@ -1,8 +1,13 @@
-package xyz.wendyltanpcy.jandancomment;
+package xyz.wendyltanpcy.jandancomment.adapter;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+
+import xyz.wendyltanpcy.jandancomment.Tab1Fragment;
+import xyz.wendyltanpcy.jandancomment.Tab2Fragment;
+import xyz.wendyltanpcy.jandancomment.Tab3Fragment;
+import xyz.wendyltanpcy.jandancomment.Tab4Fragment;
 
 /**
  * Created by pannam on 2/26/2016.

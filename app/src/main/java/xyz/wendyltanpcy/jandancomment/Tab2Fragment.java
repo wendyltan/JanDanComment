@@ -79,7 +79,7 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
         mNext.setOnClickListener(this);
 
         LitePal.getDatabase();
-        mPageInfo = DataSupport.find(PageInfo.class,2);
+        mPageInfo = DataSupport.find(PageInfo.class,3);
         if (mPageInfo == null) {
             PageInfo info = new PageInfo();
             info.setLatestPageNum(CURRENT_NEWEST);

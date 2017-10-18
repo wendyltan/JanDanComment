@@ -15,10 +15,10 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.lqr.recyclerview.LQRRecyclerView;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import xyz.wendyltanpcy.jandancomment.adapter.SimpleAdapter;
 import xyz.wendyltanpcy.jandancomment.model.PageInfo;
 
 
@@ -42,8 +43,9 @@ import xyz.wendyltanpcy.jandancomment.model.PageInfo;
  */
 public class Tab1Fragment extends Fragment implements View.OnClickListener {
 
-    private ListView infoListView;
-    private List<Map<String, Object>> list = new ArrayList<>();
+//    private ListView infoListView;
+    private LQRRecyclerView mRecyclerView;
+    private List<Map<String, String>> list = new ArrayList<>();
     private String url_first_half = "http://jandan.net/duan/page-";
     private String url_second_half = "#comments";
     private String next_page_url = "";
@@ -51,8 +53,10 @@ public class Tab1Fragment extends Fragment implements View.OnClickListener {
     private static int CURRENT_NEWEST = 2843;
     private String url;
     private ProgressDialog dialog;
-    private List<PageInfo> mPageInfos;
+    private PageInfo mPageInfo;
     private TextView mPrev,mRefresh,mNext,mPageNum;
+
+
 
 
     public Tab1Fragment() {
@@ -75,8 +79,8 @@ public class Tab1Fragment extends Fragment implements View.OnClickListener {
         mNext.setOnClickListener(this);
 
         LitePal.getDatabase();
-        mPageInfos = DataSupport.findAll(PageInfo.class);
-        if (mPageInfos.isEmpty()){
+        mPageInfo = DataSupport.find(PageInfo.class,1);
+        if (mPageInfo == null){
             PageInfo info = new PageInfo();
             info.setLatestPageNum(CURRENT_NEWEST);
             currentPage = CURRENT_NEWEST;
@@ -87,7 +91,8 @@ public class Tab1Fragment extends Fragment implements View.OnClickListener {
         }
 
         // 显示宣讲会信息的ListView
-        infoListView = v.findViewById(R.id.info_list_view);
+//        infoListView = v.findViewById(R.id.info_list_view);
+        mRecyclerView = v.findViewById(R.id.rv);
         switchOver(currentPage);
 
 
@@ -102,10 +107,13 @@ public class Tab1Fragment extends Fragment implements View.OnClickListener {
             message.setText(R.string.message);
 
         } else {
-            SimpleAdapter adapter = new SimpleAdapter(getActivity(), list, R.layout.comments_list_item,
-                    new String[]{"userName", "time", "number","content","support","against"},
-                    new int[]{R.id.user_name, R.id.publish_time, R.id.publish_number,R.id.content,R.id.support,R.id.against});
-            infoListView.setAdapter(adapter);
+//            SimpleAdapter adapter = new SimpleAdapter(getActivity(), list, R.layout.comments_list_item,
+//                    new String[]{"userName", "time", "number","content","support","against"},
+//                    new int[]{R.id.user_name, R.id.publish_time, R.id.publish_number,R.id.content,R.id.support,R.id.against});
+//            infoListView.setAdapter(adapter);
+
+            SimpleAdapter adapter = new SimpleAdapter(list);
+            mRecyclerView.setAdapter(adapter);
         }
         dialog.dismiss();  // 关闭窗口
     }
@@ -138,7 +146,7 @@ public class Tab1Fragment extends Fragment implements View.OnClickListener {
                 String[] vote = element.getElementsByClass("jandan-vote").select("span span").text().split(" ");
                 String support = vote[0];
                 String against = vote[1];
-                Map<String, Object> map = new HashMap<>();
+                Map<String, String> map = new HashMap<>();
                 map.put("userName", userName);
                 map.put("time", publishTime);
                 map.put("content", content);

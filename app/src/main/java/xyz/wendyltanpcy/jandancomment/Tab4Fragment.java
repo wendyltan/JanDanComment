@@ -80,7 +80,7 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener{
         mNext.setOnClickListener(this);
 
         LitePal.getDatabase();
-        mPageInfo = DataSupport.find(PageInfo.class,3);
+        mPageInfo = DataSupport.find(PageInfo.class,2);
         if (mPageInfo == null) {
             PageInfo info = new PageInfo();
             info.setLatestPageNum(CURRENT_NEWEST);
@@ -151,7 +151,11 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener{
                 String[] vote = element.getElementsByClass("jandan-vote").select("span span").text().split(" ");
                 String support = vote[0];
                 //这里有一个奇妙的bug
-                String against = vote[0];
+                if (support.isEmpty()){
+                    continue;
+                }
+                String against = vote[1];
+
                 Map<String, Object> map = new HashMap<>();
                 map.put("userName", userName);
                 map.put("time", publishTime);
