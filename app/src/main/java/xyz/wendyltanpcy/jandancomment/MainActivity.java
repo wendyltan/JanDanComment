@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences setting = PreferenceManager.getDefaultSharedPreferences(this);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.addTab(tabLayout.newTab().setText("段子"));
-        tabLayout.addTab(tabLayout.newTab().setText("待定"));
+        tabLayout.addTab(tabLayout.newTab().setText("无聊图"));
         tabLayout.addTab(tabLayout.newTab().setText("新鲜事"));
         if (setting.getBoolean("key_switch_girl",false)){
             tabLayout.addTab(tabLayout.newTab().setText("妹子图"));

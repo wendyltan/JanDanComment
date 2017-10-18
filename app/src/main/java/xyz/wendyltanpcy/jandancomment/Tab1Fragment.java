@@ -48,7 +48,7 @@ public class Tab1Fragment extends Fragment implements View.OnClickListener {
     private String url_second_half = "#comments";
     private String next_page_url = "";
     private int currentPage;
-    private static int CURRENT_NEWEST = 2812;
+    private static int CURRENT_NEWEST = 2843;
     private String url;
     private ProgressDialog dialog;
     private List<PageInfo> mPageInfos;

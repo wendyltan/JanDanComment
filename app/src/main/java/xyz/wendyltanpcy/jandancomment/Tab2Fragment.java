@@ -6,8 +6,6 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -17,11 +15,14 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.squareup.picasso.Picasso;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -32,9 +33,6 @@ import org.litepal.LitePal;
 import org.litepal.crud.DataSupport;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,7 +52,7 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
     private String url_second_half = "#comments";
     private String next_page_url = "";
     private int currentPage;
-    private static int CURRENT_NEWEST = 187;
+    private static int CURRENT_NEWEST = 205;
     private String url;
     private ProgressDialog dialog;
     private PageInfo mPageInfo;
@@ -111,6 +109,15 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
                     new int[]{R.id.user_name, R.id.publish_time, R.id.publish_number,R.id.girl_content, R.id.support, R.id.against});
             adapter.setViewBinder(new MyViewBinder());
             infoListView.setAdapter(adapter);
+            infoListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    ListView v = (ListView) parent;
+                    HashMap<String, String> map = (HashMap<String, String>) v.getItemAtPosition(position);
+                    String url = map.get("girls");
+                    PictureHandle.actionStart(getContext(),url);
+                }
+            });
         }
         dialog.dismiss();  // 关闭窗口
     }
@@ -146,7 +153,7 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
                 Map<String, Object> map = new HashMap<>();
                 map.put("userName", userName);
                 map.put("time", publishTime);
-                map.put("girls",getBitmap("http:"+content));
+                map.put("girls","http:"+content);
                 map.put("number", righttext);
                 map.put("support", support);
                 map.put("against", against);
@@ -164,11 +171,15 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
         @Override
         public boolean setViewValue(View view, Object data,
                                     String textRepresentation) {
-            if((view instanceof ImageView)&(data instanceof Bitmap))
+            if((view instanceof ImageView)&(data instanceof String))
             {
                 ImageView iv = (ImageView)view;
-                Bitmap bmp = (Bitmap)data;
-                iv.setImageBitmap(bmp);
+
+                //通过url动态加载图片
+                Picasso.with(getContext())
+                        .load((String) data)
+                        .placeholder(R.mipmap.icon)
+                        .into(iv);
                 return true;
             }
             return false;
@@ -176,22 +187,7 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
 
 
     }
-    //获取网络图片资源，返回类型是Bitmap，用于设置在ListView中
-    public Bitmap getBitmap(String httpUrl)
-    {
-        Bitmap bmp = null;
-        //ListView中获取网络图片
-        try {
-            URL url = new URL(httpUrl);
-            HttpURLConnection conn = (HttpURLConnection)url.openConnection();
-            InputStream is = conn.getInputStream();
-            bmp = BitmapFactory.decodeStream(is);
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return bmp;
-    }
+
 
 
     Handler handler = new Handler() {
