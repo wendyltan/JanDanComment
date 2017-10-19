@@ -15,15 +15,6 @@
             android:layout_height="40dp"
             android:background="@color/colorPrimary">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/prev"
-                android:layout_weight="1"
-                android:textColor="#ffffff"
-                android:gravity="center_horizontal"
-                android:layout_gravity="center_vertical"
-                android:text="上一页"/>
 
             <TextView
                 android:id="@+id/pageNumber"
@@ -34,15 +25,39 @@
                 android:layout_gravity="center_vertical"
                 android:textColor="#ffffff"/>
 
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center_horizontal"
+                    android:textColor="#ffffff"
+                    android:text="跳转页数："/>
+                <EditText
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/editPageNum"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:layout_gravity="bottom"
+                    android:textColor="#ffffff"/>
+            </LinearLayout>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/next"
+                android:id="@+id/jump"
                 android:layout_weight="1"
                 android:textColor="#ffffff"
                 android:gravity="center_horizontal"
                 android:layout_gravity="center_vertical"
-                android:text="下一页"/>
+                android:text="跳转"/>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -74,14 +89,22 @@
                 <!--android:layout_width="match_parent"-->
                 <!--android:layout_height="match_parent"-->
                 <!--android:dividerHeight="2dp"/>-->
-            <com.lqr.recyclerview.LQRRecyclerView
-                android:id="@+id/rv"
+
+            <com.andview.refreshview.XRefreshView
+                android:id="@+id/xrefreshview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:rv_default_animator_open="true"
-                app:rv_divider_color="#624c4c"
-                app:rv_orientation="vertical"
-                app:rv_type="grid"/>
+                android:background="#fff">
+
+                <com.lqr.recyclerview.LQRRecyclerView
+                    android:id="@+id/rv"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:rv_default_animator_open="true"
+                    app:rv_divider_color="#624c4c"
+                    app:rv_orientation="vertical"
+                    app:rv_type="grid"/>
+            </com.andview.refreshview.XRefreshView>
         </FrameLayout>
 
 </LinearLayout>
