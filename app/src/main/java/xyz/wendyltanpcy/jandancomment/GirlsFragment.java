@@ -22,7 +22,8 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -44,43 +45,44 @@ import xyz.wendyltanpcy.jandancomment.model.PageInfo;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class Tab4Fragment extends Fragment implements View.OnClickListener{
-
-
-    public Tab4Fragment() {
-        // Required empty public constructor
-    }
+public class GirlsFragment extends Fragment implements View.OnClickListener {
 
     private ListView infoListView;
     private List<Map<String, Object>> list = new ArrayList<>();
-    private String url_first_half = "http://jandan.net/pic/page-";
+    private String url_first_half = "http://jandan.net/ooxx/page-";
     private String url_second_half = "#comments";
     private String next_page_url = "";
     private int currentPage;
-    private static int CURRENT_NEWEST = 164;
+    private static int CURRENT_NEWEST = 224;
     private String url;
     private ProgressDialog dialog;
     private PageInfo mPageInfo;
     private TextView mPrev, mRefresh, mNext, mPageNum;
+    private  boolean isNextPageExists = false;
 
+
+    public GirlsFragment() {
+        // Required empty public constructor
+    }
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View v = inflater.inflate(R.layout.fragment_tab4, container, false);
+        View v = inflater.inflate(R.layout.fragment_tab2, container, false);
         mPrev = v.findViewById(R.id.prev);
         mRefresh = v.findViewById(R.id.refresh);
         mNext = v.findViewById(R.id.next);
         mPageNum = v.findViewById(R.id.pageNumber);
+
 
         mPrev.setOnClickListener(this);
         mRefresh.setOnClickListener(this);
         mNext.setOnClickListener(this);
 
         LitePal.getDatabase();
-        mPageInfo = DataSupport.find(PageInfo.class,2);
+        mPageInfo = DataSupport.find(PageInfo.class,3);
         if (mPageInfo == null) {
             PageInfo info = new PageInfo();
             info.setLatestPageNum(CURRENT_NEWEST);
@@ -90,12 +92,100 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener{
             currentPage = mPageInfo.getLatestPageNum();
         }
 
+
         infoListView = v.findViewById(R.id.info_list_view);
-        switchOver(currentPage);
+        autoJumpFirst();
 
 
         return v;
     }
+
+    /**
+     * auto jump to first page when starting
+     */
+
+    private void autoJumpFirst(){
+
+
+        while (true){
+            if (testGetNextPage()){
+                ++currentPage;
+            }else{
+                break;
+            }
+        }
+
+        switchOver(currentPage);
+        if (mPageInfo!=null){
+            mPageInfo.setLatestPageNum(currentPage);
+            mPageInfo.save();
+        }
+
+    }
+
+    /**
+     * 检查是否是第一页或者第一页的状态
+     * @return
+     */
+
+    public boolean judgeIfFirstPage(){
+        PageInfo info = DataSupport.find(PageInfo.class,1);
+        if(list.size()<25&&currentPage>0) {
+            Toast.makeText(getActivity(), "已经是第一页了", Toast.LENGTH_SHORT).show();
+            info.setLatestPageNum(currentPage);
+            info.save();
+            return false;
+        }
+        else if(list.size()==25){
+            Toast.makeText(getActivity(), "第一页满了", Toast.LENGTH_SHORT).show();
+            //下一页没东西了，才是第一页
+            if (testGetNextPage()==false){
+                info.setLatestPageNum(currentPage);
+                info.save();
+            }
+
+            return true;
+        }else{
+            //未到第一页
+            ++currentPage;
+            switchOver(currentPage);
+            return false;
+        }
+
+
+    }
+
+    /**
+     * 测试下一页是否真的有东西，没有则返回false
+     * @return
+     */
+    public boolean testGetNextPage(){
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int page = currentPage+1;
+                String url = url_first_half + page + url_second_half;
+                Connection conn = Jsoup.connect(url);
+                Document doc = null;
+                try {
+                    doc = conn.get();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (doc == null){
+                    //this is an invalid page
+                    isNextPageExists = false;
+                }else{
+                    //feel free to get next page
+                    isNextPageExists  = true;
+                }
+
+            }
+        }).start();
+        return isNextPageExists;
+    }
+
 
 
     // 将数据填充到ListView中
@@ -105,17 +195,17 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener{
             message.setText(R.string.message);
 
         } else {
-            SimpleAdapter adapter = new SimpleAdapter(getActivity(), list, R.layout.boring_list_item,
-                    new String[]{"userName", "time", "number","boring", "support", "against"},
-                    new int[]{R.id.user_name, R.id.publish_time, R.id.publish_number,R.id.boring_content, R.id.support, R.id.against});
-            adapter.setViewBinder(new Tab4Fragment.MyViewBinder());
+            SimpleAdapter adapter = new SimpleAdapter(getActivity(), list, R.layout.girls_list_item,
+                    new String[]{"userName", "time", "number","girls", "support", "against"},
+                    new int[]{R.id.user_name, R.id.publish_time, R.id.publish_number,R.id.girl_content, R.id.support, R.id.against});
+            adapter.setViewBinder(new MyViewBinder());
             infoListView.setAdapter(adapter);
             infoListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     ListView v = (ListView) parent;
                     HashMap<String, String> map = (HashMap<String, String>) v.getItemAtPosition(position);
-                    String url = map.get("boring");
+                    String url = map.get("girls");
                     PictureHandle.actionStart(getContext(),url);
                 }
             });
@@ -145,21 +235,16 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener{
             Elements elements = doc.select("ol li");
             for (Element element : elements) {
                 String userName = element.getElementsByClass("author").select("strong").text();
-                String publishTime = element.getElementsByClass("author").select("small").select("a").text();
+                String publishTime = element.getElementsByClass("author").select("small").select("a").text().substring(1);
                 String content = element.getElementsByClass("text").select("p a").attr("href");
                 String righttext = element.getElementsByClass("text").select("a").text();
                 String[] vote = element.getElementsByClass("jandan-vote").select("span span").text().split(" ");
                 String support = vote[0];
-                //这里有一个奇妙的bug
-                if (support.isEmpty()){
-                    continue;
-                }
                 String against = vote[1];
-
                 Map<String, Object> map = new HashMap<>();
                 map.put("userName", userName);
                 map.put("time", publishTime);
-                map.put("boring","http:"+content);
+                map.put("girls","http:"+content);
                 map.put("number", righttext);
                 map.put("support", support);
                 map.put("against", against);
@@ -172,6 +257,7 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener{
         }
     };
 
+
     class MyViewBinder implements SimpleAdapter.ViewBinder
     {
         @Override
@@ -179,13 +265,28 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener{
                                     String textRepresentation) {
             if((view instanceof ImageView)&(data instanceof String))
             {
-                ImageView iv = (ImageView)view;
+                ImageView iv = (ImageView) view;
+                String url = (String)data;
+
 
                 //通过url动态加载图片
-                Picasso.with(getContext())
-                        .load((String) data)
-                        .placeholder(R.mipmap.icon)
-                        .into(iv);
+
+                if (url.substring(url.length()-3,url.length())=="gif")
+                    Glide.with(getContext())
+                            .load(url)
+                            .asGif()
+                            .skipMemoryCache(false)
+                            .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                            .placeholder(R.mipmap.icon)
+                            .into(iv);
+                else{
+                    Glide.with(getContext())
+                            .load(url)
+                            .skipMemoryCache(false)
+                            .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                            .placeholder(R.mipmap.icon)
+                            .into(iv);
+                }
                 return true;
             }
             return false;
@@ -300,17 +401,7 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener{
     // 上一页
     public void prePage() {
         if(isNetworkAvailable(getActivity())) {
-            if(list.size()<25) {
-                Toast.makeText(getActivity(), "已经是第一页了", Toast.LENGTH_SHORT).show();
-                mPageInfo.setLatestPageNum(currentPage);
-                mPageInfo.save();
-            }
-            else if(list.size()==25&&mPageInfo.getLatestPageNum()==currentPage){
-                Toast.makeText(getActivity(), "第一页满了", Toast.LENGTH_SHORT).show();
-                ++currentPage;
-                switchOver(currentPage);
-            }
-            else {
+            if (testGetNextPage()&&judgeIfFirstPage()){
                 ++currentPage;
                 switchOver(currentPage);
             }
@@ -378,4 +469,3 @@ public class Tab4Fragment extends Fragment implements View.OnClickListener{
         }
     }
 }
-

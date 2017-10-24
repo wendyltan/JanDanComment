@@ -15,14 +15,12 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.squareup.picasso.Picasso;
+import com.andview.refreshview.XRefreshView;
+import com.lqr.recyclerview.LQRRecyclerView;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -38,94 +36,156 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import xyz.wendyltanpcy.jandancomment.adapter.SimpleAdapter;
 import xyz.wendyltanpcy.jandancomment.model.PageInfo;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class Tab2Fragment extends Fragment implements View.OnClickListener {
+public class CommentFragment extends Fragment implements View.OnClickListener {
 
-    private ListView infoListView;
-    private List<Map<String, Object>> list = new ArrayList<>();
-    private String url_first_half = "http://jandan.net/ooxx/page-";
+//    private ListView infoListView;
+    private LQRRecyclerView mRecyclerView;
+    private List<Map<String, String>> list = new ArrayList<>();
+    private String url_first_half = "http://jandan.net/duan/page-";
     private String url_second_half = "#comments";
     private String next_page_url = "";
     private int currentPage;
-    private static int CURRENT_NEWEST = 205;
+
+    //网站有时候会定时清理过期的段子。只能手工处理这里
+    private int CURRENT_NEWEST = 107;
     private String url;
     private ProgressDialog dialog;
     private PageInfo mPageInfo;
-    private TextView mPrev, mRefresh, mNext, mPageNum;
+    private TextView mRefresh,mPageNum,jump;
+    private XRefreshView xRefreshView;
+    private boolean nextPageExist = false;
+    private boolean lastPageExist = true;
+    private EditText jumpEdit;
 
 
-    public Tab2Fragment() {
+
+
+    public CommentFragment() {
         // Required empty public constructor
     }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View v = inflater.inflate(R.layout.fragment_tab2, container, false);
-        mPrev = v.findViewById(R.id.prev);
+        View v = inflater.inflate(R.layout.fragment_tab1, container, false);
+
         mRefresh = v.findViewById(R.id.refresh);
-        mNext = v.findViewById(R.id.next);
         mPageNum = v.findViewById(R.id.pageNumber);
-
-        mPrev.setOnClickListener(this);
+        jumpEdit = v.findViewById(R.id.editPageNum);
+        jumpEdit.clearFocus();
+        jumpEdit.setSelectAllOnFocus(false);
+        jump = v.findViewById(R.id.jump);
+        mRecyclerView = v.findViewById(R.id.rv);
+        xRefreshView = v.findViewById(R.id.xrefreshview);
         mRefresh.setOnClickListener(this);
-        mNext.setOnClickListener(this);
+        jump.setOnClickListener(this);
 
-        LitePal.getDatabase();
-        mPageInfo = DataSupport.find(PageInfo.class,3);
-        if (mPageInfo == null) {
-            PageInfo info = new PageInfo();
-            info.setLatestPageNum(CURRENT_NEWEST);
-            currentPage = CURRENT_NEWEST;
-            info.save();
-        } else {
-            currentPage = mPageInfo.getLatestPageNum();
-        }
+        initPageInfo();
 
-        infoListView = v.findViewById(R.id.info_list_view);
+        initXRefreshView();
+
+        //抓取初次信息
         switchOver(currentPage);
 
 
         return v;
     }
 
+    /**
+     * 对首页信息页数记录的初始化
+     */
+    public void initPageInfo(){
+        LitePal.getDatabase();
+        mPageInfo = DataSupport.find(PageInfo.class,1);
+        if (mPageInfo == null){
+            PageInfo info = new PageInfo();
+            info.setLatestPageNum(CURRENT_NEWEST);
+            currentPage = CURRENT_NEWEST;
+            info.save();
+        }else {
+            PageInfo info = DataSupport.find(PageInfo.class,1);
+            currentPage = info.getLatestPageNum();
+        }
+    }
 
-    // 将数据填充到ListView中
+    /**
+     * 对XRefreshView的初始化
+     */
+
+    public void initXRefreshView(){
+        xRefreshView.setSilenceLoadMore(true);
+        xRefreshView.setPinnedTime(1000);
+        xRefreshView.setMoveForHorizontal(true);
+        xRefreshView.setPullLoadEnable(true);
+        xRefreshView.setPullRefreshEnable(true);
+        xRefreshView.enableReleaseToLoadMore(true);
+        xRefreshView.enableRecyclerViewPullUp(true);
+        xRefreshView.enablePullUpWhenLoadCompleted(true);
+
+
+
+        xRefreshView.setXRefreshViewListener(new XRefreshView.SimpleXRefreshListener() {
+
+            @Override
+            public void onRefresh(boolean isPullDown) {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        judgeIfFirstPage();
+                        xRefreshView.stopRefresh();
+
+
+                    }
+                }, 2000);
+            }
+
+            @Override
+            public void onLoadMore(boolean isSilence) {
+                new Handler().postDelayed(new Runnable() {
+                    public void run() {
+                        if (testGetLastPage()){
+                            judgeIfLastPage();
+                            xRefreshView.stopLoadMore();
+
+                        }else {
+                            xRefreshView.stopLoadMore();
+                        }
+
+
+                    }
+                }, 2000);
+            }
+        });
+    }
+
+
+
     private void show() {
-        if (list.isEmpty()) {
+        if(list.isEmpty()) {
             TextView message = getActivity().findViewById(R.id.message);
             message.setText(R.string.message);
 
-        } else {
-            SimpleAdapter adapter = new SimpleAdapter(getActivity(), list, R.layout.girls_list_item,
-                    new String[]{"userName", "time", "number","girls", "support", "against"},
-                    new int[]{R.id.user_name, R.id.publish_time, R.id.publish_number,R.id.girl_content, R.id.support, R.id.against});
-            adapter.setViewBinder(new MyViewBinder());
-            infoListView.setAdapter(adapter);
-            infoListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    ListView v = (ListView) parent;
-                    HashMap<String, String> map = (HashMap<String, String>) v.getItemAtPosition(position);
-                    String url = map.get("girls");
-                    PictureHandle.actionStart(getContext(),url);
-                }
-            });
+        }else{
+            SimpleAdapter adapter = new SimpleAdapter(list);
+            mRecyclerView.setAdapter(adapter);
         }
-        dialog.dismiss();  // 关闭窗口
+        dialog.dismiss();
     }
 
 
     Runnable runnable = new Runnable() {
         @Override
         public void run() {
+
             Connection conn = Jsoup.connect(url);
             // 修改http包中的header,伪装成浏览器进行抓取
             conn.header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:32.0) Gecko/    20100101 Firefox/32.0");
@@ -142,22 +202,23 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
 
             // 获取tbody元素下的所有td元素
             Elements elements = doc.select("ol li");
-            for (Element element : elements) {
+            for(Element element : elements) {
                 String userName = element.getElementsByClass("author").select("strong").text();
                 String publishTime = element.getElementsByClass("author").select("small").select("a").text().substring(1);
-                String content = element.getElementsByClass("text").select("p a").attr("href");
+                String content = element.getElementsByClass("text").select("p").text();
                 String righttext = element.getElementsByClass("text").select("a").text();
                 String[] vote = element.getElementsByClass("jandan-vote").select("span span").text().split(" ");
                 String support = vote[0];
                 String against = vote[1];
-                Map<String, Object> map = new HashMap<>();
+                Map<String, String> map = new HashMap<>();
                 map.put("userName", userName);
                 map.put("time", publishTime);
-                map.put("girls","http:"+content);
-                map.put("number", righttext);
-                map.put("support", support);
-                map.put("against", against);
+                map.put("content", content);
+                map.put("number",righttext);
+                map.put("support",support);
+                map.put("against",against);
                 list.add(map);
+
 
             }
 
@@ -165,29 +226,6 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
             handler.sendEmptyMessage(0);
         }
     };
-
-    class MyViewBinder implements SimpleAdapter.ViewBinder
-    {
-        @Override
-        public boolean setViewValue(View view, Object data,
-                                    String textRepresentation) {
-            if((view instanceof ImageView)&(data instanceof String))
-            {
-                ImageView iv = (ImageView)view;
-
-                //通过url动态加载图片
-                Picasso.with(getContext())
-                        .load((String) data)
-                        .placeholder(R.mipmap.icon)
-                        .into(iv);
-                return true;
-            }
-            return false;
-        }
-
-
-    }
-
 
 
     Handler handler = new Handler() {
@@ -204,20 +242,23 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
         }
     };
 
-    public void setTextStr(String str) {
-        mPageNum.setText("当前: " + str);
+    public void setTextStr(String str){
+        mPageNum.setText("当前: "+str);
     }
 
 
     // 判断是否有可用的网络连接
-    public boolean isNetworkAvailable(Activity activity) {
+    public boolean isNetworkAvailable(Activity activity)
+    {
         Context context = activity.getApplicationContext();
-        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm == null)
             return false;
-        else {   // 获取所有NetworkInfo对象
+        else
+        {   // 获取所有NetworkInfo对象
             NetworkInfo[] networkInfo = cm.getAllNetworkInfo();
-            if (networkInfo != null && networkInfo.length > 0) {
+            if (networkInfo != null && networkInfo.length > 0)
+            {
                 for (int i = 0; i < networkInfo.length; i++)
                     if (networkInfo[i].getState() == NetworkInfo.State.CONNECTED)
                         return true;  // 存在可用的网络连接
@@ -229,7 +270,7 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
 
     // 重新抓取
     public void switchOver(final int page) {
-        if (isNetworkAvailable(getActivity())) {
+        if(isNetworkAvailable(getActivity())) {
             // 显示“正在加载”窗口
             dialog = new ProgressDialog(getActivity());
             dialog.setMessage("正在抓取数据...");
@@ -244,12 +285,12 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
             new AlertDialog.Builder(getActivity())
                     .setTitle("提示")
                     .setMessage("当前没有网络连接！")
-                    .setPositiveButton("重试", new DialogInterface.OnClickListener() {
+                    .setPositiveButton("重试",new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             switchOver(page);
                         }
-                    }).setNegativeButton("退出", new DialogInterface.OnClickListener() {
+                    }).setNegativeButton("退出",new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     System.exit(0);  // 退出程序
@@ -290,24 +331,124 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
     }
 
 
+    /**
+     * 测试下一页是否真的有东西，没有则返回false
+     * @return
+     */
+    public boolean testGetNextPage(){
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int page = currentPage+1;
+                String url = url_first_half + page + url_second_half;
+                Connection conn = Jsoup.connect(url);
+                Document doc = null;
+                try {
+                    doc = conn.get();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (doc == null){
+                    //this is an invalid page
+                    nextPageExist = false;
+                }else{
+                    //feel free to get next page
+                    nextPageExist = true;
+                }
+
+            }
+        }).start();
+        return nextPageExist;
+
+    }
+
+
+    /**
+     * 测试上一页是否真的有东西，没有则返回false
+     * @return
+     */
+    public boolean testGetLastPage(){
+
+        if (currentPage==1){
+            lastPageExist = false;
+        }else{
+            lastPageExist = true;
+        }
+
+
+        return lastPageExist;
+
+    }
+
+
+    /**
+     * 检查是否是第一页或者第一页的状态
+     * @return
+     */
+
+    private void judgeIfFirstPage(){
+        PageInfo mPageInfo = DataSupport.find(PageInfo.class,1);
+        //有下一页
+        if (testGetNextPage()){
+            if(list.size()==25){
+                //这一页满了，还有下一页
+                ++currentPage;
+                switchOver(currentPage);
+            }
+        }else if (!testGetNextPage()){
+            //下一页都没有
+            if (list.size()<25&&currentPage>0){
+                //真正的第一页
+                mPageInfo.setLatestPageNum(currentPage);
+                mPageInfo.save();
+                Toast.makeText(getContext(),"已经是第一页了！",Toast.LENGTH_SHORT).show();
+            }else if (list.size()==25){
+                //这一页满了但是没有下一页了
+                mPageInfo.setLatestPageNum(currentPage);
+                mPageInfo.save();
+            }
+        }
+
+    }
+
+    public boolean judgeIfLastPage(){
+        if (!lastPageExist){
+            //don't have any last page
+            Toast.makeText(getContext(),"已经到达尾页！",Toast.LENGTH_SHORT).show();
+            return false;
+        }else if (lastPageExist){
+            //未到末页
+            --currentPage;
+            switchOver(currentPage);
+            return true;
+        }
+
+        return false;
+
+    }
+
+    /**
+     * jump to the specific page
+     * @param pageNum
+     */
+
+    public void jumpToThePage(int pageNum){
+        if (pageNum>=1){
+            //valid page number;
+            currentPage = pageNum;
+            switchOver(currentPage);
+        }else if (pageNum<=0){
+            Toast.makeText(getActivity(),"Invalid Page Num!",Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
 
     // 上一页
     public void prePage() {
         if(isNetworkAvailable(getActivity())) {
-            if(list.size()<25) {
-                Toast.makeText(getActivity(), "已经是第一页了", Toast.LENGTH_SHORT).show();
-                mPageInfo.setLatestPageNum(currentPage);
-                mPageInfo.save();
-            }
-            else if(list.size()==25&&mPageInfo.getLatestPageNum()==currentPage){
-                Toast.makeText(getActivity(), "第一页满了", Toast.LENGTH_SHORT).show();
-                ++currentPage;
-                switchOver(currentPage);
-            }
-            else {
-                ++currentPage;
-                switchOver(currentPage);
-            }
+            judgeIfFirstPage();
         } else {
             // 弹出提示框
             new AlertDialog.Builder(getActivity())
@@ -330,12 +471,7 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
     // 下一页
     public void nextPage() {
         if(isNetworkAvailable(getActivity())) {
-            if(next_page_url.equals("#"))
-                Toast.makeText(getActivity(), "已经是最后一页了", Toast.LENGTH_SHORT).show();
-            else {
-                --currentPage;
-                switchOver(currentPage);
-            }
+            judgeIfLastPage();
         } else {
             // 弹出提示框
             new AlertDialog.Builder(getActivity())
@@ -357,7 +493,7 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
+        switch (view.getId()){
             case R.id.prev:
                 prePage();
                 break;
@@ -366,6 +502,10 @@ public class Tab2Fragment extends Fragment implements View.OnClickListener {
                 break;
             case R.id.next:
                 nextPage();
+                break;
+            case R.id.jump:
+                jumpToThePage(Integer.valueOf(jumpEdit.getText().toString()));
+                jumpEdit.getText().clear();
                 break;
             default:
                 break;

@@ -36,7 +36,7 @@ import java.util.Map;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class Tab3Fragment extends Fragment implements View.OnClickListener {
+public class NewsFragment extends Fragment implements View.OnClickListener {
 
 
     private ListView infoListView;
@@ -45,7 +45,7 @@ public class Tab3Fragment extends Fragment implements View.OnClickListener {
     private ProgressDialog dialog;
     private TextView mRefresh;
 
-    public Tab3Fragment() {
+    public NewsFragment() {
         // Required empty public constructor
     }
 
