@@ -94,8 +94,8 @@ public class GirlsFragment extends Fragment implements View.OnClickListener {
 
 
         infoListView = v.findViewById(R.id.info_list_view);
-        autoJumpFirst();
 
+        switchOver(currentPage);
 
         return v;
     }
@@ -129,7 +129,7 @@ public class GirlsFragment extends Fragment implements View.OnClickListener {
      */
 
     public boolean judgeIfFirstPage(){
-        PageInfo info = DataSupport.find(PageInfo.class,1);
+        PageInfo info = DataSupport.find(PageInfo.class,3);
         if(list.size()<25&&currentPage>0) {
             Toast.makeText(getActivity(), "已经是第一页了", Toast.LENGTH_SHORT).show();
             info.setLatestPageNum(currentPage);
@@ -275,14 +275,12 @@ public class GirlsFragment extends Fragment implements View.OnClickListener {
                     Glide.with(getContext())
                             .load(url)
                             .asGif()
-                            .skipMemoryCache(false)
                             .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                             .placeholder(R.mipmap.icon)
                             .into(iv);
                 else{
                     Glide.with(getContext())
                             .load(url)
-                            .skipMemoryCache(false)
                             .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                             .placeholder(R.mipmap.icon)
                             .into(iv);

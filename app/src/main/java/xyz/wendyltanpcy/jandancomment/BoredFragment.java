@@ -23,7 +23,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -246,20 +245,17 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
                 ImageView iv = (ImageView)view;
 
                 //通过url动态加载图片
+                String url = (String)data;
 
                 if (url.substring(url.length()-3,url.length())=="gif")
                     Glide.with(getContext())
                             .load(url)
                             .asGif()
-                            .skipMemoryCache(false)
-                            .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                             .placeholder(R.mipmap.icon)
                             .into(iv);
                 else{
                     Glide.with(getContext())
                             .load(url)
-                            .skipMemoryCache(false)
-                            .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                             .placeholder(R.mipmap.icon)
                             .into(iv);
                 }
