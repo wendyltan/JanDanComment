@@ -27,8 +27,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.litepal.LitePal;
-import org.litepal.crud.DataSupport;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,8 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import xyz.wendyltanpcy.jandancomment.adapter.SimpleAdapter;
-import xyz.wendyltanpcy.jandancomment.model.PageInfo;
+import xyz.wendyltanpcy.jandancomment.adapter.CommentListAdapter;
 
 
 /**
@@ -50,19 +47,16 @@ public class CommentFragment extends Fragment implements View.OnClickListener {
     private List<Map<String, String>> list = new ArrayList<>();
     private String url_first_half = "http://jandan.net/duan/page-";
     private String url_second_half = "#comments";
-    private String next_page_url = "";
     private int currentPage;
 
-    //网站有时候会定时清理过期的段子。只能手工处理这里
-    private int CURRENT_NEWEST = 107;
     private String url;
     private ProgressDialog dialog;
-    private PageInfo mPageInfo;
     private TextView mRefresh,mPageNum,jump;
     private XRefreshView xRefreshView;
     private boolean nextPageExist = false;
     private boolean lastPageExist = true;
     private EditText jumpEdit;
+    private String current;
 
 
 
@@ -88,33 +82,15 @@ public class CommentFragment extends Fragment implements View.OnClickListener {
         mRefresh.setOnClickListener(this);
         jump.setOnClickListener(this);
 
-        initPageInfo();
-
+        currentPage = 0;
         initXRefreshView();
-
-        //抓取初次信息
+        //抓取 最新页面
         switchOver(currentPage);
-
 
         return v;
     }
 
-    /**
-     * 对首页信息页数记录的初始化
-     */
-    public void initPageInfo(){
-        LitePal.getDatabase();
-        mPageInfo = DataSupport.find(PageInfo.class,1);
-        if (mPageInfo == null){
-            PageInfo info = new PageInfo();
-            info.setLatestPageNum(CURRENT_NEWEST);
-            currentPage = CURRENT_NEWEST;
-            info.save();
-        }else {
-            PageInfo info = DataSupport.find(PageInfo.class,1);
-            currentPage = info.getLatestPageNum();
-        }
-    }
+
 
     /**
      * 对XRefreshView的初始化
@@ -175,7 +151,7 @@ public class CommentFragment extends Fragment implements View.OnClickListener {
             message.setText(R.string.message);
 
         }else{
-            SimpleAdapter adapter = new SimpleAdapter(list);
+            CommentListAdapter adapter = new CommentListAdapter(list);
             mRecyclerView.setAdapter(adapter);
         }
         dialog.dismiss();
@@ -196,12 +172,26 @@ public class CommentFragment extends Fragment implements View.OnClickListener {
                 e.printStackTrace();
             }
 
-            // 获取下一页的链接
+            //transform currentpage num from 0 to specific number
+            if (currentPage==0){
+                Elements t = doc.select("div div span");
+                String[] hi = new String[1];
+                for (Element e : t){
+                    if (e.getElementsByClass("current-comment-page")!=null){
+                        current = e.getElementsByClass("current-comment-page").text();
+                        String [] hello = current.split(" ");
+                        for (String str:hello){
+                            if (!str.isEmpty()){
+                                hi[0] = str;
+                            }
+                        }
+                    }
+                };
+                currentPage = Integer.parseInt(hi[0].replace("[","").replace("]",""));
+            }
 
-            next_page_url = url_first_half + currentPage + url_second_half;
-
-            // 获取tbody元素下的所有td元素
             Elements elements = doc.select("ol li");
+
             for(Element element : elements) {
                 String userName = element.getElementsByClass("author").select("strong").text();
                 String publishTime = element.getElementsByClass("author").select("small").select("a").text().substring(1);
@@ -388,7 +378,6 @@ public class CommentFragment extends Fragment implements View.OnClickListener {
      */
 
     private void judgeIfFirstPage(){
-        PageInfo mPageInfo = DataSupport.find(PageInfo.class,1);
         //有下一页
         if (testGetNextPage()){
             if(list.size()==25){
@@ -400,13 +389,11 @@ public class CommentFragment extends Fragment implements View.OnClickListener {
             //下一页都没有
             if (list.size()<25&&currentPage>0){
                 //真正的第一页
-                mPageInfo.setLatestPageNum(currentPage);
-                mPageInfo.save();
+
                 Toast.makeText(getContext(),"已经是第一页了！",Toast.LENGTH_SHORT).show();
             }else if (list.size()==25){
                 //这一页满了但是没有下一页了
-                mPageInfo.setLatestPageNum(currentPage);
-                mPageInfo.save();
+
             }
         }
 

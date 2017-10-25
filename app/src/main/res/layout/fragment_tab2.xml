@@ -69,11 +69,14 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"/>
 
-        <ListView
-            android:id="@+id/info_list_view"
+        <com.lqr.recyclerview.LQRRecyclerView
+            android:id="@+id/rv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:dividerHeight="2dp"/>
+            app:rv_default_animator_open="true"
+            app:rv_divider_color="#624c4c"
+            app:rv_orientation="vertical"
+            app:rv_type="grid"/>
     </FrameLayout>
 
 </LinearLayout>

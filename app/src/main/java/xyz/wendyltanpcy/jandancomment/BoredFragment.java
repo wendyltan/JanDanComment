@@ -15,22 +15,16 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
+import com.lqr.recyclerview.LQRRecyclerView;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.litepal.LitePal;
-import org.litepal.crud.DataSupport;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,7 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import xyz.wendyltanpcy.jandancomment.model.PageInfo;
+import xyz.wendyltanpcy.jandancomment.adapter.BoredListAdapter;
 
 
 /**
@@ -51,19 +45,17 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
         // Required empty public constructor
     }
 
-    private ListView infoListView;
-    private List<Map<String, Object>> list = new ArrayList<>();
+    private LQRRecyclerView mRecyclerView;
+    private List<Map<String, String>> list = new ArrayList<>();
     private String url_first_half = "http://jandan.net/pic/page-";
     private String url_second_half = "#comments";
     private String next_page_url = "";
     private int currentPage;
-    private static int CURRENT_NEWEST = 227;
     private String url;
     private ProgressDialog dialog;
-    private PageInfo mPageInfo;
     private TextView mPrev, mRefresh, mNext, mPageNum;
     private static boolean isNextPageExists=false;
-
+    private String current;
 
 
 
@@ -82,22 +74,9 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
         mNext.setOnClickListener(this);
 
 
-        infoListView = v.findViewById(R.id.info_list_view);
+        mRecyclerView = v.findViewById(R.id.rv);
 
-        currentPage = CURRENT_NEWEST;
-
-
-
-        LitePal.getDatabase();
-        mPageInfo = DataSupport.find(PageInfo.class,2);
-        if (mPageInfo==null){
-            PageInfo info = new PageInfo();
-            info.setLatestPageNum(currentPage);
-            info.save();
-        }else {
-            currentPage = mPageInfo.getLatestPageNum();
-        }
-
+        currentPage = 0;
 
         switchOver(currentPage);
 
@@ -161,29 +140,15 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
 
     // 将数据填充到ListView中
     private void show() {
-        if (list.isEmpty()) {
+        if(list.isEmpty()) {
             TextView message = getActivity().findViewById(R.id.message);
             message.setText(R.string.message);
 
-        } else {
-            SimpleAdapter adapter = new SimpleAdapter(getActivity(), list, R.layout.boring_list_item,
-                    new String[]{"userName", "time", "number","boring", "support", "against"},
-                    new int[]{R.id.user_name, R.id.publish_time, R.id.publish_number,R.id.boring_content, R.id.support, R.id.against});
-            adapter.setViewBinder(new BoredFragment.MyViewBinder());
-            infoListView.setAdapter(adapter);
-            infoListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    ListView v = (ListView) parent;
-                    HashMap<String, String> map = (HashMap<String, String>) v.getItemAtPosition(position);
-                    String url = map.get("boring");
-                    PictureHandle.actionStart(getContext(),url);
-                }
-            });
-
-
+        }else{
+            BoredListAdapter adapter = new BoredListAdapter(list);
+            mRecyclerView.setAdapter(adapter);
         }
-        dialog.dismiss();  // 关闭窗口
+        dialog.dismiss();
     }
 
 
@@ -204,7 +169,25 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
 
             next_page_url = url_first_half + currentPage + url_second_half;
 
-            // 获取tbody元素下的所有td元素
+
+            //transform currentpage num from 0 to specific number
+            if (currentPage==0){
+                Elements t = doc.select("div div span");
+                String[] hi = new String[1];
+                for (Element e : t){
+                    if (e.getElementsByClass("current-comment-page")!=null){
+                        current = e.getElementsByClass("current-comment-page").text();
+                        String [] hello = current.split(" ");
+                        for (String str:hello){
+                            if (!str.isEmpty()){
+                                hi[0] = str;
+                            }
+                        }
+                    }
+                };
+                currentPage = Integer.parseInt(hi[0].replace("[","").replace("]",""));
+            }
+
             Elements elements = doc.select("ol li");
             for (Element element : elements) {
                 String userName = element.getElementsByClass("author").select("strong").text();
@@ -219,7 +202,7 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
                 }
                 String against = vote[1];
 
-                Map<String, Object> map = new HashMap<>();
+                Map<String, String> map = new HashMap<>();
                 map.put("userName", userName);
                 map.put("time", publishTime);
                 map.put("boring","http:"+content);
@@ -235,37 +218,6 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
         }
     };
 
-    class MyViewBinder implements SimpleAdapter.ViewBinder
-    {
-        @Override
-        public boolean setViewValue(View view, Object data,
-                                    String textRepresentation) {
-            if((view instanceof ImageView)&(data instanceof String))
-            {
-                ImageView iv = (ImageView)view;
-
-                //通过url动态加载图片
-                String url = (String)data;
-
-                if (url.substring(url.length()-3,url.length())=="gif")
-                    Glide.with(getContext())
-                            .load(url)
-                            .asGif()
-                            .placeholder(R.mipmap.icon)
-                            .into(iv);
-                else{
-                    Glide.with(getContext())
-                            .load(url)
-                            .placeholder(R.mipmap.icon)
-                            .into(iv);
-                }
-                return true;
-            }
-            return false;
-        }
-
-
-    }
 
 
 
@@ -375,7 +327,6 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
 
     // 上一页
     public void prePage(){
-        PageInfo mPageInfo = DataSupport.find(PageInfo.class,2);
         if(isNetworkAvailable(getActivity())) {
             //有下一页
            if (testGetNextPage()){
@@ -389,12 +340,8 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
                if (judgeIfFirstPage()==1){
                    //真正的第一页
 
-                   mPageInfo.setLatestPageNum(currentPage);
-                   mPageInfo.save();
                }else if (judgeIfFirstPage()==2){
                    //这一页满了但是没有下一页了
-                   mPageInfo.setLatestPageNum(currentPage);
-                   mPageInfo.save();
                }
            }
         } else {

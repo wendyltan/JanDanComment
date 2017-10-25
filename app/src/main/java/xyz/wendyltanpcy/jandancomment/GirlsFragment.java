@@ -15,23 +15,16 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.lqr.recyclerview.LQRRecyclerView;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.litepal.LitePal;
-import org.litepal.crud.DataSupport;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,7 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import xyz.wendyltanpcy.jandancomment.model.PageInfo;
+import xyz.wendyltanpcy.jandancomment.adapter.GirlListAdapter;
 
 
 /**
@@ -47,18 +40,17 @@ import xyz.wendyltanpcy.jandancomment.model.PageInfo;
  */
 public class GirlsFragment extends Fragment implements View.OnClickListener {
 
-    private ListView infoListView;
-    private List<Map<String, Object>> list = new ArrayList<>();
+    private LQRRecyclerView mRecyclerView;
+    private List<Map<String, String>> list = new ArrayList<>();
     private String url_first_half = "http://jandan.net/ooxx/page-";
     private String url_second_half = "#comments";
     private String next_page_url = "";
     private int currentPage;
-    private static int CURRENT_NEWEST = 224;
     private String url;
     private ProgressDialog dialog;
-    private PageInfo mPageInfo;
     private TextView mPrev, mRefresh, mNext, mPageNum;
     private  boolean isNextPageExists = false;
+    private String current;
 
 
     public GirlsFragment() {
@@ -81,47 +73,17 @@ public class GirlsFragment extends Fragment implements View.OnClickListener {
         mRefresh.setOnClickListener(this);
         mNext.setOnClickListener(this);
 
-        LitePal.getDatabase();
-        mPageInfo = DataSupport.find(PageInfo.class,3);
-        if (mPageInfo == null) {
-            PageInfo info = new PageInfo();
-            info.setLatestPageNum(CURRENT_NEWEST);
-            currentPage = CURRENT_NEWEST;
-            info.save();
-        } else {
-            currentPage = mPageInfo.getLatestPageNum();
-        }
 
 
-        infoListView = v.findViewById(R.id.info_list_view);
+        mRecyclerView = v.findViewById(R.id.rv);
+        currentPage = 0;
 
         switchOver(currentPage);
 
         return v;
     }
 
-    /**
-     * auto jump to first page when starting
-     */
 
-    private void autoJumpFirst(){
-
-
-        while (true){
-            if (testGetNextPage()){
-                ++currentPage;
-            }else{
-                break;
-            }
-        }
-
-        switchOver(currentPage);
-        if (mPageInfo!=null){
-            mPageInfo.setLatestPageNum(currentPage);
-            mPageInfo.save();
-        }
-
-    }
 
     /**
      * 检查是否是第一页或者第一页的状态
@@ -129,20 +91,14 @@ public class GirlsFragment extends Fragment implements View.OnClickListener {
      */
 
     public boolean judgeIfFirstPage(){
-        PageInfo info = DataSupport.find(PageInfo.class,3);
         if(list.size()<25&&currentPage>0) {
             Toast.makeText(getActivity(), "已经是第一页了", Toast.LENGTH_SHORT).show();
-            info.setLatestPageNum(currentPage);
-            info.save();
+
             return false;
         }
         else if(list.size()==25){
             Toast.makeText(getActivity(), "第一页满了", Toast.LENGTH_SHORT).show();
             //下一页没东西了，才是第一页
-            if (testGetNextPage()==false){
-                info.setLatestPageNum(currentPage);
-                info.save();
-            }
 
             return true;
         }else{
@@ -194,23 +150,11 @@ public class GirlsFragment extends Fragment implements View.OnClickListener {
             TextView message = getActivity().findViewById(R.id.message);
             message.setText(R.string.message);
 
-        } else {
-            SimpleAdapter adapter = new SimpleAdapter(getActivity(), list, R.layout.girls_list_item,
-                    new String[]{"userName", "time", "number","girls", "support", "against"},
-                    new int[]{R.id.user_name, R.id.publish_time, R.id.publish_number,R.id.girl_content, R.id.support, R.id.against});
-            adapter.setViewBinder(new MyViewBinder());
-            infoListView.setAdapter(adapter);
-            infoListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    ListView v = (ListView) parent;
-                    HashMap<String, String> map = (HashMap<String, String>) v.getItemAtPosition(position);
-                    String url = map.get("girls");
-                    PictureHandle.actionStart(getContext(),url);
-                }
-            });
+        } else{
+            GirlListAdapter adapter = new GirlListAdapter(list);
+            mRecyclerView.setAdapter(adapter);
         }
-        dialog.dismiss();  // 关闭窗口
+        dialog.dismiss();
     }
 
 
@@ -231,17 +175,34 @@ public class GirlsFragment extends Fragment implements View.OnClickListener {
 
             next_page_url = url_first_half + currentPage + url_second_half;
 
-            // 获取tbody元素下的所有td元素
+            //transform currentpage num from 0 to specific number
+            if (currentPage==0){
+                Elements t = doc.select("div div span");
+                String[] hi = new String[1];
+                for (Element e : t){
+                    if (e.getElementsByClass("current-comment-page")!=null){
+                        current = e.getElementsByClass("current-comment-page").text();
+                        String [] hello = current.split(" ");
+                        for (String str:hello){
+                            if (!str.isEmpty()){
+                                hi[0] = str;
+                            }
+                        }
+                    }
+                };
+                currentPage = Integer.parseInt(hi[0].replace("[","").replace("]",""));
+            }
+
             Elements elements = doc.select("ol li");
             for (Element element : elements) {
                 String userName = element.getElementsByClass("author").select("strong").text();
                 String publishTime = element.getElementsByClass("author").select("small").select("a").text().substring(1);
                 String content = element.getElementsByClass("text").select("p a").attr("href");
-                String righttext = element.getElementsByClass("text").select("a").text();
+                String righttext = element.getElementsByClass("text").select("a").text().replace("[查看原图]","");
                 String[] vote = element.getElementsByClass("jandan-vote").select("span span").text().split(" ");
                 String support = vote[0];
                 String against = vote[1];
-                Map<String, Object> map = new HashMap<>();
+                Map<String, String> map = new HashMap<>();
                 map.put("userName", userName);
                 map.put("time", publishTime);
                 map.put("girls","http:"+content);
@@ -258,40 +219,6 @@ public class GirlsFragment extends Fragment implements View.OnClickListener {
     };
 
 
-    class MyViewBinder implements SimpleAdapter.ViewBinder
-    {
-        @Override
-        public boolean setViewValue(View view, Object data,
-                                    String textRepresentation) {
-            if((view instanceof ImageView)&(data instanceof String))
-            {
-                ImageView iv = (ImageView) view;
-                String url = (String)data;
-
-
-                //通过url动态加载图片
-
-                if (url.substring(url.length()-3,url.length())=="gif")
-                    Glide.with(getContext())
-                            .load(url)
-                            .asGif()
-                            .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                            .placeholder(R.mipmap.icon)
-                            .into(iv);
-                else{
-                    Glide.with(getContext())
-                            .load(url)
-                            .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                            .placeholder(R.mipmap.icon)
-                            .into(iv);
-                }
-                return true;
-            }
-            return false;
-        }
-
-
-    }
 
 
 
