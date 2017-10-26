@@ -231,7 +231,7 @@ public class NewsActivity extends AppCompatActivity {
                 onBackPressed();
                 return true;
             case R.id.open_comments_list:
-                CommentsActivity.actionStart(this,url);
+                NewsCommentsActivity.actionStart(this,url);
                 return true;
             default:
                 break;

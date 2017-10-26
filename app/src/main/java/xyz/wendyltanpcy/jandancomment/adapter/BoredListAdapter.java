@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import xyz.wendyltanpcy.jandancomment.PictureHandle;
+import xyz.wendyltanpcy.jandancomment.helper.PictureHandle;
 import xyz.wendyltanpcy.jandancomment.R;
 
 /**

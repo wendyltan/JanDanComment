@@ -27,9 +27,10 @@
         </activity>
         <activity android:name=".SettingsActivity"/>
         <activity android:name=".NewsActivity"/>
-        <activity android:name=".CommentsActivity">
+        <activity android:name=".NewsCommentsActivity">
         </activity>
-        <activity android:name=".PictureHandle"/>
+        <activity android:name=".GCCommentsActivity"/>
+        <activity android:name=".helper.PictureHandle"/>
     </application>
 
 </manifest>

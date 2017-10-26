@@ -1,4 +1,4 @@
-package xyz.wendyltanpcy.jandancomment;
+package xyz.wendyltanpcy.jandancomment.helper;
 
 import android.animation.ValueAnimator;
 import android.content.Context;

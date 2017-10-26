@@ -4,10 +4,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
-import xyz.wendyltanpcy.jandancomment.CommentFragment;
-import xyz.wendyltanpcy.jandancomment.GirlsFragment;
-import xyz.wendyltanpcy.jandancomment.NewsFragment;
-import xyz.wendyltanpcy.jandancomment.BoredFragment;
+import xyz.wendyltanpcy.jandancomment.TabFragment.CommentFragment;
+import xyz.wendyltanpcy.jandancomment.TabFragment.GirlsFragment;
+import xyz.wendyltanpcy.jandancomment.TabFragment.NewsFragment;
+import xyz.wendyltanpcy.jandancomment.TabFragment.BoredFragment;
 
 /**
  * Created by pannam on 2/26/2016.

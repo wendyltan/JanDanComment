@@ -1,5 +1,6 @@
 package xyz.wendyltanpcy.jandancomment.adapter;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import xyz.wendyltanpcy.jandancomment.GCCommentsActivity;
 import xyz.wendyltanpcy.jandancomment.R;
+import xyz.wendyltanpcy.jandancomment.helper.SerializableMap;
 
 /**
  * Created by Wendy on 2017/10/18.
@@ -20,13 +23,15 @@ import xyz.wendyltanpcy.jandancomment.R;
 
 public class CommentListAdapter extends BaseRecyclerAdapter<CommentListAdapter.ViewHolder> {
 
-    private List<Map<String,String>> commentList = new ArrayList<>();
+    private List<SerializableMap> commentList = new ArrayList<>();
+    private Context mContext;
 
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType, boolean isItem) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(
-                R.layout.comments_list_item, parent, false);
+        mContext = parent.getContext();
+        View v = LayoutInflater.from(mContext).inflate(
+                R.layout.duanzi_list_item, parent, false);
         ViewHolder vh = new ViewHolder(v, true);
         return vh;
     }
@@ -36,20 +41,28 @@ public class CommentListAdapter extends BaseRecyclerAdapter<CommentListAdapter.V
         return new ViewHolder(view,true);
     }
 
-    public CommentListAdapter(List<Map<String, String>> list){
+    public CommentListAdapter(List<SerializableMap> list){
         commentList = list;
     }
 
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position, boolean isItem) {
-        Map<String,String> map = commentList.get(position);
+        final SerializableMap Maph =  commentList.get(position);
+        Map<String,String> map = Maph.getMap();
         holder.userName.setText(map.get("userName"));
         holder.number.setText(map.get("number"));
         holder.time.setText(map.get("time"));
         holder.content.setText(map.get("content"));
         holder.against.setText(map.get("against"));
         holder.support.setText(map.get("support"));
+        holder.tucao.setText(map.get("tucao"));
+        holder.tucao_prefix.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                GCCommentsActivity.actionStart(mContext,Maph);
+            }
+        });
 
     }
 
@@ -68,7 +81,7 @@ public class CommentListAdapter extends BaseRecyclerAdapter<CommentListAdapter.V
 
     static class ViewHolder extends RecyclerView.ViewHolder{
 
-        TextView userName,number,time,content,against,support;
+        TextView userName,number,time,content,against,support,tucao,tucao_prefix;
 
         public ViewHolder(View view,boolean isItem){
             super(view);
@@ -79,6 +92,8 @@ public class CommentListAdapter extends BaseRecyclerAdapter<CommentListAdapter.V
                 content = view.findViewById(R.id.content);
                 support = view.findViewById(R.id.support);
                 against = view.findViewById(R.id.against);
+                tucao = view.findViewById(R.id.tucao);
+                tucao_prefix = view.findViewById(R.id.tucao_prefix);
             }
 
         }

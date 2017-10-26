@@ -1,4 +1,4 @@
-package xyz.wendyltanpcy.jandancomment;
+package xyz.wendyltanpcy.jandancomment.helper;
 
 import android.Manifest;
 import android.content.Context;
@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
+import xyz.wendyltanpcy.jandancomment.R;
 
 /**
  * Created by Wendy on 2017/10/18.

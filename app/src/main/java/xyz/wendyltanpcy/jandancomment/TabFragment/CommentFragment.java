@@ -1,4 +1,4 @@
-package xyz.wendyltanpcy.jandancomment;
+package xyz.wendyltanpcy.jandancomment.TabFragment;
 
 
 import android.app.Activity;
@@ -15,9 +15,11 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.andview.refreshview.XRefreshView;
 import com.lqr.recyclerview.LQRRecyclerView;
 
 import org.jsoup.Connection;
@@ -32,120 +34,126 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import xyz.wendyltanpcy.jandancomment.adapter.BoredListAdapter;
+import xyz.wendyltanpcy.jandancomment.R;
+import xyz.wendyltanpcy.jandancomment.helper.SerializableMap;
+import xyz.wendyltanpcy.jandancomment.adapter.CommentListAdapter;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class BoredFragment extends Fragment implements View.OnClickListener{
+public class CommentFragment extends Fragment implements View.OnClickListener {
 
-
-    public BoredFragment() {
-        // Required empty public constructor
-    }
-
+//    private ListView infoListView;
     private LQRRecyclerView mRecyclerView;
-    private List<Map<String, String>> list = new ArrayList<>();
-    private String url_first_half = "http://jandan.net/pic/page-";
+    private List<SerializableMap> list = new ArrayList<>();
+    private String url_first_half = "http://jandan.net/duan/page-";
     private String url_second_half = "#comments";
-    private String next_page_url = "";
     private int currentPage;
+
     private String url;
     private ProgressDialog dialog;
-    private TextView mPrev, mRefresh, mNext, mPageNum;
-    private static boolean isNextPageExists=false;
+    private TextView mRefresh,mPageNum,jump;
+    private XRefreshView xRefreshView;
+    private boolean nextPageExist = false;
+    private boolean lastPageExist = true;
+    private EditText jumpEdit;
     private String current;
 
 
+
+
+    public CommentFragment() {
+        // Required empty public constructor
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View v = inflater.inflate(R.layout.fragment_tab4, container, false);
-        mPrev = v.findViewById(R.id.prev);
+        View v = inflater.inflate(R.layout.fragment_tab1, container, false);
+
         mRefresh = v.findViewById(R.id.refresh);
-        mNext = v.findViewById(R.id.next);
         mPageNum = v.findViewById(R.id.pageNumber);
-
-        mPrev.setOnClickListener(this);
-        mRefresh.setOnClickListener(this);
-        mNext.setOnClickListener(this);
-
-
+        jumpEdit = v.findViewById(R.id.editPageNum);
+        jumpEdit.clearFocus();
+        jumpEdit.setSelectAllOnFocus(false);
+        jump = v.findViewById(R.id.jump);
         mRecyclerView = v.findViewById(R.id.rv);
+        xRefreshView = v.findViewById(R.id.xrefreshview);
+        mRefresh.setOnClickListener(this);
+        jump.setOnClickListener(this);
 
         currentPage = 0;
-
+        initXRefreshView();
+        //抓取 最新页面
         switchOver(currentPage);
 
         return v;
     }
 
 
-    /**
-     * 检查是否是第一页或者第一页的状态
-     * @return
-     */
-
-    public int judgeIfFirstPage(){
-        if(list.size()<25&&currentPage>0) {
-            Toast.makeText(getActivity(), "已经是第一页了", Toast.LENGTH_SHORT).show();
-            return 1;
-        }
-        else if(list.size()==25){
-            return 2;
-        }
-
-        //默认
-
-        return 0;
-
-    }
 
     /**
-     * 测试下一页是否真的有东西，没有则返回false
-     * @return
+     * 对XRefreshView的初始化
      */
-    public boolean testGetNextPage(){
 
-        new Thread(new Runnable() {
+    public void initXRefreshView(){
+        xRefreshView.setSilenceLoadMore(true);
+        xRefreshView.setPinnedTime(1000);
+        xRefreshView.setMoveForHorizontal(true);
+        xRefreshView.setPullLoadEnable(true);
+        xRefreshView.setPullRefreshEnable(true);
+        xRefreshView.enableReleaseToLoadMore(true);
+        xRefreshView.enableRecyclerViewPullUp(true);
+        xRefreshView.enablePullUpWhenLoadCompleted(true);
+
+
+
+        xRefreshView.setXRefreshViewListener(new XRefreshView.SimpleXRefreshListener() {
+
             @Override
-            public void run() {
-                int page = currentPage+1;
-                String url = url_first_half + page + url_second_half;
-                Connection conn = Jsoup.connect(url);
-                Document doc = null;
-                try {
-                    doc = conn.get();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                if (doc == null){
-                    //this is an invalid page
-                    isNextPageExists = false;
-                }else{
-                    //feel free to get next page
-                    isNextPageExists  = true;
-                }
+            public void onRefresh(boolean isPullDown) {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
 
+                        judgeIfFirstPage();
+                        xRefreshView.stopRefresh();
+
+
+                    }
+                }, 2000);
             }
-        }).start();
-        return isNextPageExists;
+
+            @Override
+            public void onLoadMore(boolean isSilence) {
+                new Handler().postDelayed(new Runnable() {
+                    public void run() {
+                        if (testGetLastPage()){
+                            judgeIfLastPage();
+                            xRefreshView.stopLoadMore();
+
+                        }else {
+                            xRefreshView.stopLoadMore();
+                        }
+
+
+                    }
+                }, 2000);
+            }
+        });
     }
 
 
 
-
-    // 将数据填充到ListView中
     private void show() {
         if(list.isEmpty()) {
             TextView message = getActivity().findViewById(R.id.message);
             message.setText(R.string.message);
 
         }else{
-            BoredListAdapter adapter = new BoredListAdapter(list);
+            CommentListAdapter adapter = new CommentListAdapter(list);
             mRecyclerView.setAdapter(adapter);
         }
         dialog.dismiss();
@@ -155,6 +163,7 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
     Runnable runnable = new Runnable() {
         @Override
         public void run() {
+
             Connection conn = Jsoup.connect(url);
             // 修改http包中的header,伪装成浏览器进行抓取
             conn.header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:32.0) Gecko/    20100101 Firefox/32.0");
@@ -164,11 +173,6 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            // 获取下一页的链接
-
-            next_page_url = url_first_half + currentPage + url_second_half;
-
 
             //transform currentpage num from 0 to specific number
             if (currentPage==0){
@@ -189,27 +193,36 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
             }
 
             Elements elements = doc.select("ol li");
-            for (Element element : elements) {
+
+            for(Element element : elements) {
                 String userName = element.getElementsByClass("author").select("strong").text();
-                String publishTime = element.getElementsByClass("author").select("small").select("a").text();
-                String content = element.getElementsByClass("text").select("p a").attr("href");
+                String publishTime = element.getElementsByClass("author").select("small").select("a").text().substring(1);
+                String content = element.getElementsByClass("text").select("p").text();
                 String righttext = element.getElementsByClass("text").select("a").text();
                 String[] vote = element.getElementsByClass("jandan-vote").select("span span").text().split(" ");
                 String support = vote[0];
-                //这里有一个奇妙的bug
-                if (support.isEmpty()){
-                    continue;
-                }
                 String against = vote[1];
+                String tucaoString = element.getElementsByClass("jandan-vote")
+                        .select("span")
+                        .select(".tucao-btn").text()
+                        .replace("吐槽","")
+                        .replace("[","")
+                        .replace("]","");
+                SerializableMap Map = new SerializableMap();
 
                 Map<String, String> map = new HashMap<>();
                 map.put("userName", userName);
                 map.put("time", publishTime);
-                map.put("boring","http:"+content);
-                map.put("number", righttext);
-                map.put("support", support);
-                map.put("against", against);
-                list.add(map);
+                map.put("content", content);
+                map.put("number",righttext);
+                map.put("support",support);
+                map.put("against",against);
+                map.put("tucao",tucaoString);
+                map.put("url",url);
+
+                Map.setMap(map);
+                list.add(Map);
+
 
             }
 
@@ -217,8 +230,6 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
             handler.sendEmptyMessage(0);
         }
     };
-
-
 
 
     Handler handler = new Handler() {
@@ -232,26 +243,26 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
                     break;
             }
             show();
-
-
-
         }
     };
 
-    public void setTextStr(String str) {
-        mPageNum.setText("当前: " + str);
+    public void setTextStr(String str){
+        mPageNum.setText("当前: "+str);
     }
 
 
     // 判断是否有可用的网络连接
-    public boolean isNetworkAvailable(Activity activity) {
+    public boolean isNetworkAvailable(Activity activity)
+    {
         Context context = activity.getApplicationContext();
-        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm == null)
             return false;
-        else {   // 获取所有NetworkInfo对象
+        else
+        {   // 获取所有NetworkInfo对象
             NetworkInfo[] networkInfo = cm.getAllNetworkInfo();
-            if (networkInfo != null && networkInfo.length > 0) {
+            if (networkInfo != null && networkInfo.length > 0)
+            {
                 for (int i = 0; i < networkInfo.length; i++)
                     if (networkInfo[i].getState() == NetworkInfo.State.CONNECTED)
                         return true;  // 存在可用的网络连接
@@ -263,7 +274,7 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
 
     // 重新抓取
     public void switchOver(final int page) {
-        if (isNetworkAvailable(getActivity())) {
+        if(isNetworkAvailable(getActivity())) {
             // 显示“正在加载”窗口
             dialog = new ProgressDialog(getActivity());
             dialog.setMessage("正在抓取数据...");
@@ -278,12 +289,12 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
             new AlertDialog.Builder(getActivity())
                     .setTitle("提示")
                     .setMessage("当前没有网络连接！")
-                    .setPositiveButton("重试", new DialogInterface.OnClickListener() {
+                    .setPositiveButton("重试",new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             switchOver(page);
                         }
-                    }).setNegativeButton("退出", new DialogInterface.OnClickListener() {
+                    }).setNegativeButton("退出",new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     System.exit(0);  // 退出程序
@@ -324,26 +335,121 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
     }
 
 
+    /**
+     * 测试下一页是否真的有东西，没有则返回false
+     * @return
+     */
+    public boolean testGetNextPage(){
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int page = currentPage+1;
+                String url = url_first_half + page + url_second_half;
+                Connection conn = Jsoup.connect(url);
+                Document doc = null;
+                try {
+                    doc = conn.get();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (doc == null){
+                    //this is an invalid page
+                    nextPageExist = false;
+                }else{
+                    //feel free to get next page
+                    nextPageExist = true;
+                }
+
+            }
+        }).start();
+        return nextPageExist;
+
+    }
+
+
+    /**
+     * 测试上一页是否真的有东西，没有则返回false
+     * @return
+     */
+    public boolean testGetLastPage(){
+
+        if (currentPage==1){
+            lastPageExist = false;
+        }else{
+            lastPageExist = true;
+        }
+
+
+        return lastPageExist;
+
+    }
+
+
+    /**
+     * 检查是否是第一页或者第一页的状态
+     * @return
+     */
+
+    private void judgeIfFirstPage(){
+        //有下一页
+        if (testGetNextPage()){
+            if(list.size()==25){
+                //这一页满了，还有下一页
+                ++currentPage;
+                switchOver(currentPage);
+            }
+        }else if (!testGetNextPage()){
+            //下一页都没有
+            if (list.size()<25&&currentPage>0){
+                //真正的第一页
+
+                Toast.makeText(getContext(),"已经是第一页了！",Toast.LENGTH_SHORT).show();
+            }else if (list.size()==25){
+                //这一页满了但是没有下一页了
+
+            }
+        }
+
+    }
+
+    public boolean judgeIfLastPage(){
+        if (!lastPageExist){
+            //don't have any last page
+            Toast.makeText(getContext(),"已经到达尾页！",Toast.LENGTH_SHORT).show();
+            return false;
+        }else if (lastPageExist){
+            //未到末页
+            --currentPage;
+            switchOver(currentPage);
+            return true;
+        }
+
+        return false;
+
+    }
+
+    /**
+     * jump to the specific page
+     * @param pageNum
+     */
+
+    public void jumpToThePage(int pageNum){
+        if (pageNum>=1){
+            //valid page number;
+            currentPage = pageNum;
+            switchOver(currentPage);
+        }else if (pageNum<=0){
+            Toast.makeText(getActivity(),"Invalid Page Num!",Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
 
     // 上一页
-    public void prePage(){
+    public void prePage() {
         if(isNetworkAvailable(getActivity())) {
-            //有下一页
-           if (testGetNextPage()){
-               if(judgeIfFirstPage()==2){
-                   //这一页满了，还有下一页
-                   ++currentPage;
-                   switchOver(currentPage);
-               }
-           }else if (!testGetNextPage()){
-               //下一页都没有
-               if (judgeIfFirstPage()==1){
-                   //真正的第一页
-
-               }else if (judgeIfFirstPage()==2){
-                   //这一页满了但是没有下一页了
-               }
-           }
+            judgeIfFirstPage();
         } else {
             // 弹出提示框
             new AlertDialog.Builder(getActivity())
@@ -366,12 +472,7 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
     // 下一页
     public void nextPage() {
         if(isNetworkAvailable(getActivity())) {
-            if(next_page_url.equals("#"))
-                Toast.makeText(getActivity(), "已经是最后一页了", Toast.LENGTH_SHORT).show();
-            else {
-                --currentPage;
-                switchOver(currentPage);
-            }
+            judgeIfLastPage();
         } else {
             // 弹出提示框
             new AlertDialog.Builder(getActivity())
@@ -393,7 +494,7 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
+        switch (view.getId()){
             case R.id.prev:
                 prePage();
                 break;
@@ -403,9 +504,12 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
             case R.id.next:
                 nextPage();
                 break;
+            case R.id.jump:
+                jumpToThePage(Integer.valueOf(jumpEdit.getText().toString()));
+                jumpEdit.getText().clear();
+                break;
             default:
                 break;
         }
     }
 }
-

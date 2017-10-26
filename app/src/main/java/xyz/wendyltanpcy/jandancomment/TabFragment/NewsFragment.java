@@ -1,4 +1,4 @@
-package xyz.wendyltanpcy.jandancomment;
+package xyz.wendyltanpcy.jandancomment.TabFragment;
 
 
 import android.app.Activity;
@@ -31,6 +31,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import xyz.wendyltanpcy.jandancomment.NewsActivity;
+import xyz.wendyltanpcy.jandancomment.R;
 
 
 /**

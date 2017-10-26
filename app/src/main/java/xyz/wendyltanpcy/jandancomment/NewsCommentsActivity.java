@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CommentsActivity extends AppCompatActivity {
+public class NewsCommentsActivity extends AppCompatActivity {
 
     private String url;
     private List<Map<String, Object>> list = new ArrayList<>();
@@ -44,7 +44,7 @@ public class CommentsActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar!=null){
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setTitle("NewsComment");
+            actionBar.setTitle("News Comment");
         }
 
         Intent i = getIntent();
@@ -57,7 +57,7 @@ public class CommentsActivity extends AppCompatActivity {
     }
 
     public static void actionStart(Context context,String url){
-        Intent i = new Intent(context,CommentsActivity.class);
+        Intent i = new Intent(context,NewsCommentsActivity.class);
         i.putExtra("url",url);
         context.startActivity(i);
     }
@@ -174,22 +174,13 @@ public class CommentsActivity extends AppCompatActivity {
             message.setText(R.string.message);
 
         } else {
-            SimpleAdapter adapter = new SimpleAdapter(this, list, R.layout.comments_double_list_item,
+            SimpleAdapter adapter = new SimpleAdapter(this, list, R.layout.detail_comments_list_item,
                     new String[]{"userName", "time","content","support","against"},
                     new int[]{R.id.user_name, R.id.publish_time, R.id.content,R.id.support,R.id.against});
             hotCommentList.setAdapter(adapter);
         }
         dialog.dismiss();  // 关闭窗口
     }
-
-
-
-
-
-
-
-
-
 
 
 

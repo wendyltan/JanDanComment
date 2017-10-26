@@ -1,4 +1,4 @@
-package xyz.wendyltanpcy.jandancomment;
+package xyz.wendyltanpcy.jandancomment.TabFragment;
 
 
 import android.app.Activity;
@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import xyz.wendyltanpcy.jandancomment.R;
 import xyz.wendyltanpcy.jandancomment.adapter.GirlListAdapter;
 
 

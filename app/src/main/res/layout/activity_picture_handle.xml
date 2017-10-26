@@ -8,7 +8,7 @@
 
 
 
-        <xyz.wendyltanpcy.jandancomment.PinchImageView
+        <xyz.wendyltanpcy.jandancomment.helper.PinchImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/handle_pic"/>
