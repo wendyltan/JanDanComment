@@ -4,7 +4,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
-import xyz.wendyltanpcy.jandancomment.TabFragment.CommentFragment;
+import xyz.wendyltanpcy.jandancomment.TabFragment.DuanziFragment;
 import xyz.wendyltanpcy.jandancomment.TabFragment.GirlsFragment;
 import xyz.wendyltanpcy.jandancomment.TabFragment.NewsFragment;
 import xyz.wendyltanpcy.jandancomment.TabFragment.BoredFragment;
@@ -27,7 +27,7 @@ public class TabPagerAdapter extends FragmentPagerAdapter {
         switch (position) {
 
             case 0:
-                CommentFragment tab1 = new CommentFragment();
+                DuanziFragment tab1 = new DuanziFragment();
                 return tab1;
 
             case 1:

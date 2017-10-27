@@ -181,7 +181,7 @@ public class NewsActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.open_comments,menu);
+        getMenuInflater().inflate(R.menu.open_news_comments,menu);
         return true;
     }
 

@@ -71,7 +71,7 @@
                 android:text="OO "
                 android:textSize="15sp"
                 android:textColor="#646060"
-                android:layout_marginLeft="30dp"/>
+                android:layout_marginLeft="20dp"/>
 
             <TextView
                 android:id="@+id/support"
@@ -85,7 +85,7 @@
                 android:layout_height="wrap_content"
                 android:text="XX "
                 android:textSize="15sp"
-                android:layout_marginLeft="80dp"
+                android:layout_marginLeft="60dp"
                 android:textColor="#646060"/>
 
             <TextView
@@ -110,6 +110,14 @@
                 android:textSize="15sp"
                 android:layout_marginLeft="2dp"
                 android:layout_height="wrap_content" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:id="@+id/duanzi_contextMenu"
+                android:layout_weight="1"
+                android:src="@drawable/ic_action_overflow_horizontal"/>
 
 
 

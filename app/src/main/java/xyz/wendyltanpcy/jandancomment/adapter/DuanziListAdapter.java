@@ -2,9 +2,11 @@ package xyz.wendyltanpcy.jandancomment.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.andview.refreshview.recyclerview.BaseRecyclerAdapter;
@@ -21,7 +23,7 @@ import xyz.wendyltanpcy.jandancomment.helper.SerializableMap;
  * Created by Wendy on 2017/10/18.
  */
 
-public class CommentListAdapter extends BaseRecyclerAdapter<CommentListAdapter.ViewHolder> {
+public class DuanziListAdapter extends BaseRecyclerAdapter<DuanziListAdapter.ViewHolder> {
 
     private List<SerializableMap> commentList = new ArrayList<>();
     private Context mContext;
@@ -41,7 +43,7 @@ public class CommentListAdapter extends BaseRecyclerAdapter<CommentListAdapter.V
         return new ViewHolder(view,true);
     }
 
-    public CommentListAdapter(List<SerializableMap> list){
+    public DuanziListAdapter(List<SerializableMap> list){
         commentList = list;
     }
 
@@ -64,6 +66,13 @@ public class CommentListAdapter extends BaseRecyclerAdapter<CommentListAdapter.V
             }
         });
 
+        holder.contextMenuButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                view.showContextMenu();
+            }
+        });
+
     }
 
 
@@ -79,9 +88,10 @@ public class CommentListAdapter extends BaseRecyclerAdapter<CommentListAdapter.V
     }
 
 
-    static class ViewHolder extends RecyclerView.ViewHolder{
+    static class ViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener{
 
         TextView userName,number,time,content,against,support,tucao,tucao_prefix;
+        ImageView contextMenuButton;
 
         public ViewHolder(View view,boolean isItem){
             super(view);
@@ -94,8 +104,18 @@ public class CommentListAdapter extends BaseRecyclerAdapter<CommentListAdapter.V
                 against = view.findViewById(R.id.against);
                 tucao = view.findViewById(R.id.tucao);
                 tucao_prefix = view.findViewById(R.id.tucao_prefix);
+                contextMenuButton = view.findViewById(R.id.duanzi_contextMenu);
             }
 
+            view.setOnCreateContextMenuListener(this);
+
+
+        }
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo contextMenuInfo) {
+            //menuInfo is null
+            menu.add(0, 1, getAdapterPosition(), "复制段子");
+            menu.add(0, 2, getAdapterPosition(), "分享");
         }
 
     }

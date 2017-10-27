@@ -4,8 +4,11 @@ package xyz.wendyltanpcy.jandancomment.TabFragment;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -13,6 +16,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -35,14 +39,14 @@ import java.util.List;
 import java.util.Map;
 
 import xyz.wendyltanpcy.jandancomment.R;
+import xyz.wendyltanpcy.jandancomment.adapter.DuanziListAdapter;
 import xyz.wendyltanpcy.jandancomment.helper.SerializableMap;
-import xyz.wendyltanpcy.jandancomment.adapter.CommentListAdapter;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class CommentFragment extends Fragment implements View.OnClickListener {
+public class DuanziFragment extends Fragment implements View.OnClickListener {
 
 //    private ListView infoListView;
     private LQRRecyclerView mRecyclerView;
@@ -63,7 +67,7 @@ public class CommentFragment extends Fragment implements View.OnClickListener {
 
 
 
-    public CommentFragment() {
+    public DuanziFragment() {
         // Required empty public constructor
     }
 
@@ -153,7 +157,7 @@ public class CommentFragment extends Fragment implements View.OnClickListener {
             message.setText(R.string.message);
 
         }else{
-            CommentListAdapter adapter = new CommentListAdapter(list);
+            DuanziListAdapter adapter = new DuanziListAdapter(list);
             mRecyclerView.setAdapter(adapter);
         }
         dialog.dismiss();
@@ -248,6 +252,37 @@ public class CommentFragment extends Fragment implements View.OnClickListener {
 
     public void setTextStr(String str){
         mPageNum.setText("当前: "+str);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        // TODO Auto-generated method stub
+        int clickedItemPosition = item.getOrder();
+        SerializableMap Map = list.get(clickedItemPosition);
+        String text = Map.getMap().get("content");
+        switch (item.getItemId()) {
+            case 1:
+                //复制文字
+                //获取剪贴板管理器：
+                ClipboardManager cm = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                // 创建普通字符型ClipData
+                ClipData mClipData = ClipData.newPlainText("copy_duanzi", text);
+                // 将ClipData内容放到系统剪贴板里。
+                cm.setPrimaryClip(mClipData);
+                Toast.makeText(getContext(),"已将文字复制到剪贴板！",Toast.LENGTH_SHORT).show();
+                break;
+            case 2:
+                //分享
+                Intent textIntent = new Intent(Intent.ACTION_SEND);
+                textIntent.setType("text/plain");
+                textIntent.putExtra(Intent.EXTRA_TEXT, text);
+                startActivity(Intent.createChooser(textIntent, "分享"));
+
+                break;
+            default:
+                break;
+        }
+        return super.onContextItemSelected(item);
     }
 
 
