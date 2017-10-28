@@ -1,9 +1,8 @@
 package xyz.wendyltanpcy.jandancomment.adapter;
 
 import android.content.Context;
-import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,8 +11,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.andview.refreshview.recyclerview.BaseRecyclerAdapter;
-import com.bumptech.glide.request.target.BitmapImageViewTarget;
-import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.target.DrawableImageViewTarget;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,8 +19,8 @@ import java.util.Map;
 
 import xyz.wendyltanpcy.jandancomment.R;
 import xyz.wendyltanpcy.jandancomment.helper.GlideApp;
+import xyz.wendyltanpcy.jandancomment.helper.MyProgressTarget;
 import xyz.wendyltanpcy.jandancomment.helper.PictureHandle;
-import xyz.wendyltanpcy.jandancomment.helper.ProgressTarget;
 
 /**
  * Created by Wendy on 2017/10/25.
@@ -75,10 +73,10 @@ public class BoredListAdapter extends BaseRecyclerAdapter<BoredListAdapter.ViewH
         ImageView image = holder.boringContent;
 
 
-        final MyProgressTarget<Bitmap> myProgressTarget = new MyProgressTarget<>(mContext,new BitmapImageViewTarget(image), holder.progressBar);
+        final MyProgressTarget<Drawable> myProgressTarget = new MyProgressTarget<>(mContext,new DrawableImageViewTarget(image), holder.progressBar);
         myProgressTarget.setModel(url);
 
-        GlideApp.with(mContext).asBitmap().load(url).centerCrop().into(myProgressTarget);
+        GlideApp.with(mContext).asDrawable().load(url).placeholder(R.mipmap.icon).into(myProgressTarget);
 
         holder.against.setText(map.get("against"));
         holder.support.setText(map.get("support"));
@@ -90,47 +88,7 @@ public class BoredListAdapter extends BaseRecyclerAdapter<BoredListAdapter.ViewH
         });
 
 
-
     }
-
-    static class MyProgressTarget<Z> extends ProgressTarget<String, Z> {
-
-        private final ProgressBar progressBar;
-        private String TAG = "HELLO";
-
-        public MyProgressTarget(Context context, Target<Z> target, ProgressBar progressBar) {
-            super(context,target);
-            this.progressBar = progressBar;
-        }
-
-        @Override
-        public float getGranualityPercentage() {
-            return super.getGranualityPercentage();
-        }
-
-        @Override
-        protected void onConnecting() {
-            progressBar.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        protected void onDownloading(long bytesRead, long expectedLength) {
-            Log.d(TAG, "onDownloading: " + (int) (100 * bytesRead / expectedLength));
-            progressBar.setProgress((int) (100 * bytesRead / expectedLength));
-        }
-
-        @Override
-        protected void onDownloaded() {
-            Log.e("zzzz", "onDownloaded");
-        }
-
-        @Override
-        protected void onDelivered() {
-            progressBar.setProgress(100);
-            progressBar.setVisibility(View.GONE);
-        }
-    }
-
 
 
 

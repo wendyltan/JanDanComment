@@ -1,22 +1,26 @@
 package xyz.wendyltanpcy.jandancomment.adapter;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.andview.refreshview.recyclerview.BaseRecyclerAdapter;
-import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.DrawableImageViewTarget;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import xyz.wendyltanpcy.jandancomment.helper.PictureHandle;
 import xyz.wendyltanpcy.jandancomment.R;
+import xyz.wendyltanpcy.jandancomment.helper.GlideApp;
+import xyz.wendyltanpcy.jandancomment.helper.MyProgressTarget;
+import xyz.wendyltanpcy.jandancomment.helper.PictureHandle;
 
 /**
  * Created by Wendy on 2017/10/25.
@@ -54,15 +58,14 @@ public class GirlListAdapter extends BaseRecyclerAdapter<GirlListAdapter.ViewHol
         holder.number.setText(map.get("number"));
         holder.time.setText(map.get("time"));
         final String url  = map.get("girls");
-        if (url.substring(url.length()-3,url.length())=="gif")
-            Glide.with(mContext)
-                    .load(url)
-                    .into(holder.girlContent);
-        else{
-            Glide.with(mContext)
-                    .load(url)
-                    .into(holder.girlContent);
-        }
+
+        ImageView image = holder.girlContent;
+
+
+        final MyProgressTarget<Drawable> myProgressTarget = new MyProgressTarget<>(mContext,new DrawableImageViewTarget(image), holder.progressBar);
+        myProgressTarget.setModel(url);
+
+        GlideApp.with(mContext).asDrawable().load(url).placeholder(R.mipmap.icon).into(myProgressTarget);
         holder.against.setText(map.get("against"));
         holder.support.setText(map.get("support"));
         holder.girlContent.setOnClickListener(new View.OnClickListener() {
@@ -73,7 +76,6 @@ public class GirlListAdapter extends BaseRecyclerAdapter<GirlListAdapter.ViewHol
         });
 
     }
-
 
 
     @Override
@@ -91,6 +93,7 @@ public class GirlListAdapter extends BaseRecyclerAdapter<GirlListAdapter.ViewHol
 
         TextView userName,number,time,against,support;
         ImageView girlContent;
+        ProgressBar progressBar;
 
         public ViewHolder(View view,boolean isItem){
             super(view);
@@ -101,6 +104,7 @@ public class GirlListAdapter extends BaseRecyclerAdapter<GirlListAdapter.ViewHol
                 girlContent = view.findViewById(R.id.girl_content);
                 support = view.findViewById(R.id.support);
                 against = view.findViewById(R.id.against);
+                progressBar = view.findViewById(R.id.progressBar);
             }
 
         }
