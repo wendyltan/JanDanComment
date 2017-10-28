@@ -11,7 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.design.widget.Snackbar;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -37,6 +37,7 @@ public class PictureHandle extends AppCompatActivity{
 
     private String picUrl;
     private PinchImageView mImageView;
+    private FloatingActionButton download;
     public static final int PERMISSION_REQUEST = 11;
     @Override
     protected void onCreate( Bundle savedInstanceState) {
@@ -48,28 +49,21 @@ public class PictureHandle extends AppCompatActivity{
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
         mImageView = (PinchImageView) findViewById(R.id.handle_pic);
+        download = (FloatingActionButton) findViewById(R.id.downloadButton);
         Intent i = getIntent();
         picUrl = i.getStringExtra("url");
-        //获得url，加载图片
+
+        //只能用毕加索搭配pinchimage，glide不兼容
         Picasso.with(this)
                 .load(picUrl)
                 .placeholder(R.mipmap.icon)
                 .into(mImageView);
 
-
-
-        //查看大图并且提供保存
-        mImageView.setOnLongClickListener(new View.OnLongClickListener() {
+        //点击保存照片
+        download.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onLongClick(View view) {
-                Snackbar.make(view,"确定保存？",Snackbar.LENGTH_SHORT)
-                        .setAction("确定", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                checkPermission();
-                            }
-                        }).show();
-                return false;
+            public void onClick(View view) {
+                checkPermission();
             }
         });
 

@@ -51,6 +51,7 @@ public class GirlsFragment extends Fragment implements View.OnClickListener {
     private ProgressDialog dialog;
     private TextView mPrev, mRefresh, mNext, mPageNum;
     private  boolean isNextPageExists = false;
+    private  boolean lastPageExist = true;
     private String current;
 
 
@@ -91,24 +92,21 @@ public class GirlsFragment extends Fragment implements View.OnClickListener {
      * @return
      */
 
-    public boolean judgeIfFirstPage(){
-        if(list.size()<25&&currentPage>0) {
-            Toast.makeText(getActivity(), "已经是第一页了", Toast.LENGTH_SHORT).show();
-
-            return false;
+    private void judgeIfFirstPage(){
+        //有下一页
+        if (testGetNextPage()){
+            if(list.size()==25){
+                //这一页满了，还有下一页
+                ++currentPage;
+                switchOver(currentPage);
+            }
+        }else if (!testGetNextPage()){
+            //下一页都没有
+            if (list.size()<=25&&currentPage>0){
+                //真正的第一页
+                Toast.makeText(getContext(),"已经是第一页了！",Toast.LENGTH_SHORT).show();
+            }
         }
-        else if(list.size()==25){
-            Toast.makeText(getActivity(), "第一页满了", Toast.LENGTH_SHORT).show();
-            //下一页没东西了，才是第一页
-
-            return true;
-        }else{
-            //未到第一页
-            ++currentPage;
-            switchOver(currentPage);
-            return false;
-        }
-
 
     }
 
@@ -141,6 +139,44 @@ public class GirlsFragment extends Fragment implements View.OnClickListener {
             }
         }).start();
         return isNextPageExists;
+    }
+
+    /**
+     * 测试上一页是否真的有东西，没有则返回false
+     * @return
+     */
+    public boolean testGetLastPage(){
+
+        if (currentPage==1){
+            lastPageExist = false;
+        }else{
+            lastPageExist = true;
+        }
+
+
+        return lastPageExist;
+
+    }
+
+    /**
+     * 检查是否是最后一页
+     * @return
+     */
+
+    public boolean judgeIfLastPage(){
+        if (!lastPageExist){
+            //don't have any last page
+            Toast.makeText(getContext(),"已经到达尾页！",Toast.LENGTH_SHORT).show();
+            return false;
+        }else if (lastPageExist){
+            //未到末页
+            --currentPage;
+            switchOver(currentPage);
+            return true;
+        }
+
+        return false;
+
     }
 
 
@@ -327,10 +363,7 @@ public class GirlsFragment extends Fragment implements View.OnClickListener {
     // 上一页
     public void prePage() {
         if(isNetworkAvailable(getActivity())) {
-            if (testGetNextPage()&&judgeIfFirstPage()){
-                ++currentPage;
-                switchOver(currentPage);
-            }
+            judgeIfFirstPage();
         } else {
             // 弹出提示框
             new AlertDialog.Builder(getActivity())
@@ -353,12 +386,7 @@ public class GirlsFragment extends Fragment implements View.OnClickListener {
     // 下一页
     public void nextPage() {
         if(isNetworkAvailable(getActivity())) {
-            if(next_page_url.equals("#"))
-                Toast.makeText(getActivity(), "已经是最后一页了", Toast.LENGTH_SHORT).show();
-            else {
-                --currentPage;
-                switchOver(currentPage);
-            }
+            judgeIfLastPage();
         } else {
             // 弹出提示框
             new AlertDialog.Builder(getActivity())

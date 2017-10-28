@@ -56,6 +56,7 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
     private ProgressDialog dialog;
     private TextView mPrev, mRefresh, mNext, mPageNum;
     private static boolean isNextPageExists=false;
+    private boolean lastPageExist = true;
     private String current;
 
 
@@ -85,23 +86,27 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
     }
 
 
+
     /**
      * 检查是否是第一页或者第一页的状态
      * @return
      */
 
-    public int judgeIfFirstPage(){
-        if(list.size()<25&&currentPage>0) {
-            Toast.makeText(getActivity(), "已经是第一页了", Toast.LENGTH_SHORT).show();
-            return 1;
+    private void judgeIfFirstPage(){
+        //有下一页
+        if (testGetNextPage()){
+            if(list.size()==25){
+                //这一页满了，还有下一页
+                ++currentPage;
+                switchOver(currentPage);
+            }
+        }else if (!testGetNextPage()){
+            //下一页都没有
+            if (list.size()<=25&&currentPage>0){
+                //真正的第一页
+                Toast.makeText(getContext(),"已经是第一页了！",Toast.LENGTH_SHORT).show();
+            }
         }
-        else if(list.size()==25){
-            return 2;
-        }
-
-        //默认
-
-        return 0;
 
     }
 
@@ -134,6 +139,44 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
             }
         }).start();
         return isNextPageExists;
+    }
+
+    /**
+     * 测试上一页是否真的有东西，没有则返回false
+     * @return
+     */
+    public boolean testGetLastPage(){
+
+        if (currentPage==1){
+            lastPageExist = false;
+        }else{
+            lastPageExist = true;
+        }
+
+
+        return lastPageExist;
+
+    }
+
+    /**
+     * 检查是否是最后一页
+     * @return
+     */
+
+    public boolean judgeIfLastPage(){
+        if (!lastPageExist){
+            //don't have any last page
+            Toast.makeText(getContext(),"已经到达尾页！",Toast.LENGTH_SHORT).show();
+            return false;
+        }else if (lastPageExist){
+            //未到末页
+            --currentPage;
+            switchOver(currentPage);
+            return true;
+        }
+
+        return false;
+
     }
 
 
@@ -194,7 +237,7 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
                 String userName = element.getElementsByClass("author").select("strong").text();
                 String publishTime = element.getElementsByClass("author").select("small").select("a").text();
                 String content = element.getElementsByClass("text").select("p a").attr("href");
-                String righttext = element.getElementsByClass("text").select("a").text();
+                String righttext = element.getElementsByClass("text").select("a").text().replace("[查看原图]","");
                 String[] vote = element.getElementsByClass("jandan-vote").select("span span").text().split(" ");
                 String support = vote[0];
                 //这里有一个奇妙的bug
@@ -330,21 +373,7 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
     public void prePage(){
         if(isNetworkAvailable(getActivity())) {
             //有下一页
-           if (testGetNextPage()){
-               if(judgeIfFirstPage()==2){
-                   //这一页满了，还有下一页
-                   ++currentPage;
-                   switchOver(currentPage);
-               }
-           }else if (!testGetNextPage()){
-               //下一页都没有
-               if (judgeIfFirstPage()==1){
-                   //真正的第一页
-
-               }else if (judgeIfFirstPage()==2){
-                   //这一页满了但是没有下一页了
-               }
-           }
+            judgeIfFirstPage();
         } else {
             // 弹出提示框
             new AlertDialog.Builder(getActivity())
@@ -367,12 +396,7 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
     // 下一页
     public void nextPage() {
         if(isNetworkAvailable(getActivity())) {
-            if(next_page_url.equals("#"))
-                Toast.makeText(getActivity(), "已经是最后一页了", Toast.LENGTH_SHORT).show();
-            else {
-                --currentPage;
-                switchOver(currentPage);
-            }
+            judgeIfLastPage();
         } else {
             // 弹出提示框
             new AlertDialog.Builder(getActivity())

@@ -48,7 +48,6 @@ import xyz.wendyltanpcy.jandancomment.helper.SerializableMap;
  */
 public class DuanziFragment extends Fragment implements View.OnClickListener {
 
-//    private ListView infoListView;
     private LQRRecyclerView mRecyclerView;
     private List<SerializableMap> list = new ArrayList<>();
     private String url_first_half = "http://jandan.net/duan/page-";
@@ -404,6 +403,30 @@ public class DuanziFragment extends Fragment implements View.OnClickListener {
 
 
     /**
+     * 检查是否是第一页或者第一页的状态
+     * @return
+     */
+
+    private void judgeIfFirstPage(){
+        //有下一页
+        if (testGetNextPage()){
+            if(list.size()==25){
+                //这一页满了，还有下一页
+                ++currentPage;
+                switchOver(currentPage);
+            }
+        }else if (!testGetNextPage()){
+            //下一页都没有
+            if (list.size()<=25&&currentPage>0){
+                //真正的第一页
+                Toast.makeText(getContext(),"已经是第一页了！",Toast.LENGTH_SHORT).show();
+            }
+        }
+
+    }
+
+
+    /**
      * 测试上一页是否真的有东西，没有则返回false
      * @return
      */
@@ -420,33 +443,10 @@ public class DuanziFragment extends Fragment implements View.OnClickListener {
 
     }
 
-
     /**
-     * 检查是否是第一页或者第一页的状态
+     * 检查是否是最后一页
      * @return
      */
-
-    private void judgeIfFirstPage(){
-        //有下一页
-        if (testGetNextPage()){
-            if(list.size()==25){
-                //这一页满了，还有下一页
-                ++currentPage;
-                switchOver(currentPage);
-            }
-        }else if (!testGetNextPage()){
-            //下一页都没有
-            if (list.size()<25&&currentPage>0){
-                //真正的第一页
-
-                Toast.makeText(getContext(),"已经是第一页了！",Toast.LENGTH_SHORT).show();
-            }else if (list.size()==25){
-                //这一页满了但是没有下一页了
-
-            }
-        }
-
-    }
 
     public boolean judgeIfLastPage(){
         if (!lastPageExist){
@@ -470,11 +470,11 @@ public class DuanziFragment extends Fragment implements View.OnClickListener {
      */
 
     public void jumpToThePage(int pageNum){
-        if (pageNum>=1){
+        if (pageNum>=1&&pageNum<=currentPage){
             //valid page number;
             currentPage = pageNum;
             switchOver(currentPage);
-        }else if (pageNum<=0){
+        }else if (pageNum<=0||pageNum>currentPage){
             Toast.makeText(getActivity(),"Invalid Page Num!",Toast.LENGTH_SHORT).show();
         }
     }

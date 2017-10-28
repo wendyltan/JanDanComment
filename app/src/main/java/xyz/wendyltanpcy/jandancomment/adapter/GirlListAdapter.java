@@ -57,13 +57,10 @@ public class GirlListAdapter extends BaseRecyclerAdapter<GirlListAdapter.ViewHol
         if (url.substring(url.length()-3,url.length())=="gif")
             Glide.with(mContext)
                     .load(url)
-                    .asGif()
-                    .placeholder(R.mipmap.icon)
                     .into(holder.girlContent);
         else{
             Glide.with(mContext)
                     .load(url)
-                    .placeholder(R.mipmap.icon)
                     .into(holder.girlContent);
         }
         holder.against.setText(map.get("against"));
