@@ -75,8 +75,8 @@
   [3]: https://github.com/huxq17/XRefreshView
   [4]: https://github.com/boycy815/PinchImageView
   [5]: https://jsoup.org/
-  [6]: ./images/1.jpg "1.jpg"
-  [7]: ./images/2.jpg "2.jpg"
-  [8]: ./images/4.jpg "4.jpg"
-  [9]: ./images/7.png "7.png"
-  [10]: ./images/9.jpg "9.jpg"
+  [6]: /screenshot/1.jpg 
+  [7]: /screenshot/2.jpg 
+  [8]: /screenshot/4.jpg 
+  [9]: /screenshot/7.png 
+  [10]: /screenshot/9.jpg
