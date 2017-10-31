@@ -11,7 +11,7 @@
         android:layout_height="?attr/actionBarSize"
         android:id="@+id/toolbar_setting"
         android:background="@color/colorPrimary"
-        android:titleTextColor="#ffffff"/>
+        android:titleTextColor="@color/my_white"/>
 
     <ListView
         android:id="@android:id/list"

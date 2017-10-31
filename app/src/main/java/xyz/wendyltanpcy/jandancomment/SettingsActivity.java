@@ -38,6 +38,8 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
         ActionBar actionBar = getActionBar();
         if (actionBar!=null){
             actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setTitle("Setting");
+            actionBar.setHomeAsUpIndicator(R.drawable.title_back);
         }
         initPreference();
 
