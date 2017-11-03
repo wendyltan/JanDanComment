@@ -13,9 +13,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.MenuItem;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -31,6 +31,7 @@ import java.util.Map;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import xyz.wendyltanpcy.jandancomment.adapter.DuanziCommentsAdapter;
 import xyz.wendyltanpcy.jandancomment.helper.SerializableMap;
 
 /**
@@ -42,7 +43,7 @@ public class GCCommentsActivity extends AppCompatActivity {
     //需要点击段子之后段子传过来的一切参数。然后抓取相应的评论区！
     private SerializableMap mMap;
     private List<Map<String, String>> list = new ArrayList<>();
-    private ListView duanziCommentList;
+    private RecyclerView duanziCommentList;
     private ProgressDialog dialog;
     private TextView userName,number,time,content,against,support,tucao;
     private OkHttpClient okHttpClient;
@@ -88,7 +89,8 @@ public class GCCommentsActivity extends AppCompatActivity {
 
         commentNum = map.get("number");
 
-        duanziCommentList = (ListView) findViewById(R.id.gc_comments_list);
+        duanziCommentList = (RecyclerView) findViewById(R.id.gc_comments_list);
+
 
         switchOver();
     }
@@ -182,8 +184,6 @@ public class GCCommentsActivity extends AppCompatActivity {
                     String tucao_support = tucao.getString("vote_positive");
                     String tucao_against = tucao.getString("vote_negative");
 
-//                    System.out.println(tucao_author+"\n"+tucao_date+"\n"+tucao_content+"\n"
-//                    +tucao_support+" "+ tucao_against+"\n--------------------");
                     map.put("tucaoAuthor",tucao_author);
                     map.put("tucaoDate",tucao_date);
                     map.put("tucaoContent",tucao_content);
@@ -222,11 +222,11 @@ public class GCCommentsActivity extends AppCompatActivity {
             TextView message = (TextView) findViewById(R.id.message);
             message.setText(R.string.message);
 
-        } else {
-            SimpleAdapter adapter = new SimpleAdapter(this, list, R.layout.detail_comments_list_item,
-                    new String[]{"tucaoAuthor", "tucaoDate","tucaoContent","tucaoSupport","tucaoAgainst"},
-                    new int[]{R.id.user_name, R.id.publish_time, R.id.content,R.id.support,R.id.against});
+        }else{
+            DuanziCommentsAdapter adapter = new DuanziCommentsAdapter(list);
             duanziCommentList.setAdapter(adapter);
+            LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+            duanziCommentList.setLayoutManager(layoutManager);
         }
         dialog.dismiss();  // 关闭窗口
     }
