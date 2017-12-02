@@ -1,6 +1,7 @@
 package xyz.wendyltanpcy.jandancomment.TabFragment;
 
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -236,7 +237,7 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
             for (Element element : elements) {
                 String userName = element.getElementsByClass("author").select("strong").text();
                 String publishTime = element.getElementsByClass("author").select("small").select("a").text();
-                String content = element.getElementsByClass("text").select("p a").attr("href");
+                String content = element.getElementsByClass("text").select("p").html();
                 String righttext = element.getElementsByClass("text").select("a").text().replace("[查看原图]","");
                 String[] vote = element.getElementsByClass("jandan-vote").select("span span").text().split(" ");
                 String support = vote[0];
@@ -249,7 +250,7 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
                 Map<String, String> map = new HashMap<>();
                 map.put("userName", userName);
                 map.put("time", publishTime);
-                map.put("boring","http:"+content);
+                map.put("boring","http://wx3.sinaimg.cn/thumb180/44fa8beegy1fm27u8w26tg20dc0ck1kz.gif");
                 map.put("number", righttext);
                 map.put("support", support);
                 map.put("against", against);
@@ -265,6 +266,7 @@ public class BoredFragment extends Fragment implements View.OnClickListener{
 
 
 
+    @SuppressLint("HandlerLeak")
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
